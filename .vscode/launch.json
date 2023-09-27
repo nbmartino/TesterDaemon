@@ -4,7 +4,7 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-        
+
         {
             "name": "(lldb) Launch",
             "type": "cppdbg",
@@ -16,7 +16,7 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "MIDebuggerPath": "/usr/local/bin/gdb"
+            "miDebuggerPath": "/usr/local/bin/gdb"
         },
         {
             "name": "(lldb) Attach",
@@ -24,7 +24,7 @@
             "request": "attach",
             "program": "enter program name, for example ${workspaceFolder}/a.out",
             "MIMode": "gdb",
-            "MIDebuggerPath": "/usr/local/bin"
+            "miDebuggerPath": "/usr/local/bin"
         }
     ]
 }
