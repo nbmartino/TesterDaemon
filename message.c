@@ -292,7 +292,7 @@ const int MSG_TOKEN_LEN = 64;
 
 int ProcessMessage(const char *message)
 {
-    int retval = 0;
+    int retval = 0, offset = 0;
     char str_MID[MSG_TOKEN_LEN] = "";
     char str_CMD[MSG_TOKEN_LEN] = "";
     char str_common[MSG_TOKEN_LEN] = "";
@@ -304,14 +304,14 @@ int ProcessMessage(const char *message)
     */
 
     //extract_key_val(message, mid_pattern, str_MID, 1);
-    extract_kv_pair(message, mid_pattern, str_MID, 1);
-    printf("str_MID: %s\n", str_MID);
+    offset = extract_kv_pair(message + offset, mid_pattern, str_MID, 1);
+    printf("str_MID: %s, offset: %d\n", str_MID, offset);
 
     /*
     2. extract CMD
     2.1 check if single instance of CMD only, otherwise raise error
     */
-    extract_kv_pair(message, cmd_pattern, str_CMD, 1);
+    offset = extract_kv_pair(message + offset, cmd_pattern, str_CMD, 1);
     printf("str_CMD: %s\n", str_CMD);
    /*
     3. verify if trailing params are valid accd to CMD params regex

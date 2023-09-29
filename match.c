@@ -59,5 +59,5 @@ int extract_kv_pair(const char *source, const char *regexString, char *ret_str, 
 
   regfree(&regexCompiled);
 
-  return 0;
+  return cursor - source;
 }

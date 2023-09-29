@@ -59,7 +59,7 @@ void init_commands()
     params_cnt = 1;
     cmd_ptr = &cmd_list[++g_cmd_total_num];
     initialize_cmd_instance(cmd_ptr, g_cmd_total_num, "TESTERLOCK", params_cnt);
-    //strcpy(cmd_ptr->params_regex[0], "LOCK");
+    strcpy(cmd_ptr->params_regex[0], "LOCK:(TRUE|FALSE)");
 
     /* ACCSLEVEL */
     params_cnt = 0;
