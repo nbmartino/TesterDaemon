@@ -16,6 +16,8 @@ Code, Compile, Run and Debug online from anywhere in world.
 
 extern int extract_kv_pair(const char *source, const char *regexString, char *ret_str, int matched_segs);
 extern void init_commands();
+ 
+
 /*
  * Match string against the extended regular expression in
  * pattern, treating errors as no match.
@@ -285,12 +287,15 @@ const char *mid_pattern = "^MID:[0-9]*[[:space:]]*";
 const char *cmd_pattern = "[[:space:]]*CMD:[A-Z]*[?]*";
 const char *params_pattern = "[^\"]+\"|[^\"\\s]+:[[:alpha:]/.]*"; //"[:space:]\"[^\"]+\"|[^\"\\s]+\":\"[^\"]+\"|[^\"\\s]+\"[:space:]";
 
+const int MSG_TOKEN_LEN = 64;
+
+
 int ProcessMessage(const char *message)
 {
     int retval = 0;
-    char str_MID[64] = "";
-    char str_CMD[64] = "";
-    char str_common[64] = "";
+    char str_MID[MSG_TOKEN_LEN] = "";
+    char str_CMD[MSG_TOKEN_LEN] = "";
+    char str_common[MSG_TOKEN_LEN] = "";
 
     init_commands();
 

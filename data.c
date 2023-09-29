@@ -22,10 +22,10 @@ void initialize_cmd_instance(struct command *cmd_in, int index_in, char *name_in
     strcpy(cmd_in->name, name_in);
     cmd_in->params_count = params_count_in;
     cmd_in->params_regex = malloc(params_count_in * sizeof(char));
+
     for (int i = 0; i < params_count_in; i++)
     {
         cmd_in->params_regex[i] = malloc((PARAMS_REGEX_LEN + 1) * sizeof(char));
-        // strcpy(cmd_in->params_regex[i],"LOCK");
     }
 }
 
@@ -155,5 +155,4 @@ void init_commands()
     cmd_ptr = &cmd_list[++g_cmd_total_num];
     initialize_cmd_instance(cmd_ptr, g_cmd_total_num, "EOL", params_cnt);
 
-    find_cmd_index("any");
 }
