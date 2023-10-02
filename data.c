@@ -4,42 +4,42 @@
 
 #define CMD_NAME_LEN 32
 #define PARAMS_REGEX_LEN 64
-int g_cmd_total_num = -1;
+int gCmdTotalNum = -1;
 
 struct command
 {
     int index;
-    int params_count;
+    int paramsCount;
     char name[CMD_NAME_LEN];
-    char **params_regex;
+    char **paramsRegex;
 };
 
-struct command cmd_list[50];
+struct command cmdList[50];
 
-void initialize_cmd_instance(struct command *cmd_in, int index_in, char *name_in, int params_count_in) /*, char **params_regex_in)*/
+void initialize_cmd_instance(struct command *inputCmd, int inputIndex, char *inputName, int inputParamsCount) /*, char **params_regex_in)*/
 {
-    cmd_in->index = index_in;
-    strcpy(cmd_in->name, name_in);
-    cmd_in->params_count = params_count_in;
-    cmd_in->params_regex = malloc(params_count_in * sizeof(char));
+    inputCmd->index = inputIndex;
+    strcpy(inputCmd->name, inputName);
+    inputCmd->paramsCount = inputParamsCount;
+    inputCmd->paramsRegex = malloc(inputParamsCount * sizeof(char));
 
-    for (int i = 0; i < params_count_in; i++)
+    for (int i = 0; i < inputParamsCount; i++)
     {
-        cmd_in->params_regex[i] = malloc((PARAMS_REGEX_LEN + 1) * sizeof(char));
+        inputCmd->paramsRegex[i] = malloc((PARAMS_REGEX_LEN + 1) * sizeof(char));
     }
 }
 
 int find_cmd_index(const char *name)
 {
     int ctr = 0;
-    while (ctr++ < g_cmd_total_num)
+    while (ctr++ < gCmdTotalNum)
     {
-        printf("\n command name: %s", cmd_list[ctr].name);
-        if (strcmp(cmd_list[ctr].name, name) == 0)
+        printf("\n command name: %s", cmdList[ctr].name);
+        if (strcmp(cmdList[ctr].name, name) == 0)
         {
-            for (int i = 0; i < cmd_list[ctr].params_count; i++)
+            for (int i = 0; i < cmdList[ctr].paramsCount; i++)
             {
-                printf("\nparam %d: %s", i, cmd_list[ctr].params_regex[i]);
+                printf("\nparam %d: %s", i, cmdList[ctr].paramsRegex[i]);
             }
             return ctr;
         }
@@ -51,108 +51,108 @@ int find_cmd_index(const char *name)
 void init_commands()
 {
 
-    int params_cnt;
-    struct command *cmd_ptr;
+    int paramsCount;
+    struct command *cmdPtr;
 
     /* TESTERLOCK */
 
-    params_cnt = 1;
-    cmd_ptr = &cmd_list[++g_cmd_total_num];
-    initialize_cmd_instance(cmd_ptr, g_cmd_total_num, "TESTERLOCK", params_cnt);
-    strcpy(cmd_ptr->params_regex[0], "LOCK:(TRUE|FALSE)");
+    paramsCount = 1;
+    cmdPtr = &cmdList[++gCmdTotalNum];
+    initialize_cmd_instance(cmdPtr, gCmdTotalNum, "TESTERLOCK", paramsCount);
+    strcpy(cmdPtr->paramsRegex[0], "LOCK:(TRUE|FALSE)");
 
     /* ACCSLEVEL */
-    params_cnt = 0;
-    cmd_ptr = &cmd_list[++g_cmd_total_num];
-    initialize_cmd_instance(cmd_ptr, g_cmd_total_num, "ACCSLEVEL", params_cnt);
+    paramsCount = 0;
+    cmdPtr = &cmdList[++gCmdTotalNum];
+    initialize_cmd_instance(cmdPtr, gCmdTotalNum, "ACCSLEVEL", paramsCount);
 
     /* OPER */
-    params_cnt = 0;
-    cmd_ptr = &cmd_list[++g_cmd_total_num];
-    initialize_cmd_instance(cmd_ptr, g_cmd_total_num, "OPER", params_cnt);
+    paramsCount = 0;
+    cmdPtr = &cmdList[++gCmdTotalNum];
+    initialize_cmd_instance(cmdPtr, gCmdTotalNum, "OPER", paramsCount);
     
     /* PRGN */
-    params_cnt = 0;
-    cmd_ptr = &cmd_list[++g_cmd_total_num];
-    initialize_cmd_instance(cmd_ptr, g_cmd_total_num, "PRGN", params_cnt);
+    paramsCount = 0;
+    cmdPtr = &cmdList[++gCmdTotalNum];
+    initialize_cmd_instance(cmdPtr, gCmdTotalNum, "PRGN", paramsCount);
 
     /* LOT */
-    params_cnt = 0;
-    cmd_ptr = &cmd_list[++g_cmd_total_num];
-    initialize_cmd_instance(cmd_ptr, g_cmd_total_num, "LOT", params_cnt);
+    paramsCount = 0;
+    cmdPtr = &cmdList[++gCmdTotalNum];
+    initialize_cmd_instance(cmdPtr, gCmdTotalNum, "LOT", paramsCount);
 
-    /* DEVICE */params_cnt = 0;
-    cmd_ptr = &cmd_list[++g_cmd_total_num];
-    initialize_cmd_instance(cmd_ptr, g_cmd_total_num, "DEVICE", params_cnt);
+    /* DEVICE */paramsCount = 0;
+    cmdPtr = &cmdList[++gCmdTotalNum];
+    initialize_cmd_instance(cmdPtr, gCmdTotalNum, "DEVICE", paramsCount);
 
     /* TESTMODE */
-    params_cnt = 0;
-    cmd_ptr = &cmd_list[++g_cmd_total_num];
-    initialize_cmd_instance(cmd_ptr, g_cmd_total_num, "TESTMODE", params_cnt);
+    paramsCount = 0;
+    cmdPtr = &cmdList[++gCmdTotalNum];
+    initialize_cmd_instance(cmdPtr, gCmdTotalNum, "TESTMODE", paramsCount);
     
     /* PCSITES */
-    params_cnt = 0;
-    cmd_ptr = &cmd_list[++g_cmd_total_num];
-    initialize_cmd_instance(cmd_ptr, g_cmd_total_num, "PCSITES", params_cnt);
+    paramsCount = 0;
+    cmdPtr = &cmdList[++gCmdTotalNum];
+    initialize_cmd_instance(cmdPtr, gCmdTotalNum, "PCSITES", paramsCount);
     
     /* PBCARD */
-    params_cnt = 0;
-    cmd_ptr = &cmd_list[++g_cmd_total_num];
-    initialize_cmd_instance(cmd_ptr, g_cmd_total_num, "PBCARD", params_cnt);
+    paramsCount = 0;
+    cmdPtr = &cmdList[++gCmdTotalNum];
+    initialize_cmd_instance(cmdPtr, gCmdTotalNum, "PBCARD", paramsCount);
     
     /* LDBRD */
-    params_cnt = 0;
-    cmd_ptr = &cmd_list[++g_cmd_total_num];
-    initialize_cmd_instance(cmd_ptr, g_cmd_total_num, "LDBRD", params_cnt);
+    paramsCount = 0;
+    cmdPtr = &cmdList[++gCmdTotalNum];
+    initialize_cmd_instance(cmdPtr, gCmdTotalNum, "LDBRD", paramsCount);
 
     /* DLNAME */
-    params_cnt = 0;
-    cmd_ptr = &cmd_list[++g_cmd_total_num];
-    initialize_cmd_instance(cmd_ptr, g_cmd_total_num, "DLNAME", params_cnt);
+    paramsCount = 0;
+    cmdPtr = &cmdList[++gCmdTotalNum];
+    initialize_cmd_instance(cmdPtr, gCmdTotalNum, "DLNAME", paramsCount);
 
     /* DLOG */
-    params_cnt = 0;
-    cmd_ptr = &cmd_list[++g_cmd_total_num];
-    initialize_cmd_instance(cmd_ptr, g_cmd_total_num, "DLOG", params_cnt);
+    paramsCount = 0;
+    cmdPtr = &cmdList[++gCmdTotalNum];
+    initialize_cmd_instance(cmdPtr, gCmdTotalNum, "DLOG", paramsCount);
     
     /* DLSTART */
-    params_cnt = 0;
-    cmd_ptr = &cmd_list[++g_cmd_total_num];
-    initialize_cmd_instance(cmd_ptr, g_cmd_total_num, "DLSTART", params_cnt);
+    paramsCount = 0;
+    cmdPtr = &cmdList[++gCmdTotalNum];
+    initialize_cmd_instance(cmdPtr, gCmdTotalNum, "DLSTART", paramsCount);
 
     /* WFR */
-    params_cnt = 0;
-    cmd_ptr = &cmd_list[++g_cmd_total_num];
-    initialize_cmd_instance(cmd_ptr, g_cmd_total_num, "WFR", params_cnt);
+    paramsCount = 0;
+    cmdPtr = &cmdList[++gCmdTotalNum];
+    initialize_cmd_instance(cmdPtr, gCmdTotalNum, "WFR", paramsCount);
 
     /* SCRIBE */
-    params_cnt = 0;
-    cmd_ptr = &cmd_list[++g_cmd_total_num];
-    initialize_cmd_instance(cmd_ptr, g_cmd_total_num, "SCRIBE", params_cnt);
+    paramsCount = 0;
+    cmdPtr = &cmdList[++gCmdTotalNum];
+    initialize_cmd_instance(cmdPtr, gCmdTotalNum, "SCRIBE", paramsCount);
 
     /* SOT */
-    params_cnt = 0;
-    cmd_ptr = &cmd_list[++g_cmd_total_num];
-    initialize_cmd_instance(cmd_ptr, g_cmd_total_num, "SOT", params_cnt);
+    paramsCount = 0;
+    cmdPtr = &cmdList[++gCmdTotalNum];
+    initialize_cmd_instance(cmdPtr, gCmdTotalNum, "SOT", paramsCount);
     
     /* EOW */
-    params_cnt = 0;
-    cmd_ptr = &cmd_list[++g_cmd_total_num];
-    initialize_cmd_instance(cmd_ptr, g_cmd_total_num, "EOW", params_cnt);
+    paramsCount = 0;
+    cmdPtr = &cmdList[++gCmdTotalNum];
+    initialize_cmd_instance(cmdPtr, gCmdTotalNum, "EOW", paramsCount);
 
     /* DLEND */
-    params_cnt = 0;
-    cmd_ptr = &cmd_list[++g_cmd_total_num];
-    initialize_cmd_instance(cmd_ptr, g_cmd_total_num, "DLEND", params_cnt);
+    paramsCount = 0;
+    cmdPtr = &cmdList[++gCmdTotalNum];
+    initialize_cmd_instance(cmdPtr, gCmdTotalNum, "DLEND", paramsCount);
 
     /* DLGEN */
-    params_cnt = 0;
-    cmd_ptr = &cmd_list[++g_cmd_total_num];
-    initialize_cmd_instance(cmd_ptr, g_cmd_total_num, "DLGEN", params_cnt);
+    paramsCount = 0;
+    cmdPtr = &cmdList[++gCmdTotalNum];
+    initialize_cmd_instance(cmdPtr, gCmdTotalNum, "DLGEN", paramsCount);
 
     /* EOL */
-    params_cnt = 0;
-    cmd_ptr = &cmd_list[++g_cmd_total_num];
-    initialize_cmd_instance(cmd_ptr, g_cmd_total_num, "EOL", params_cnt);
+    paramsCount = 0;
+    cmdPtr = &cmdList[++gCmdTotalNum];
+    initialize_cmd_instance(cmdPtr, gCmdTotalNum, "EOL", paramsCount);
 
 }

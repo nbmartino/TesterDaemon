@@ -12,11 +12,10 @@ Code, Compile, Run and Debug online from anywhere in world.
 #include <string.h>
 #include <assert.h>
 #include <stdbool.h>
-
+#include "globaldefs.h"
 
 extern int extract_kv_pair(const char *source, const char *regexString, char *ret_str, int matched_segs);
 extern void init_commands();
- 
 
 /*
  * Match string against the extended regular expression in
@@ -162,7 +161,6 @@ int find_by_pat(const char *src, char *pat)
     regfree(&re);
 }
 
-
 #define CMD_NAME_LEN2 64
 
 struct Command2
@@ -172,7 +170,6 @@ struct Command2
     // params_pat[0] = "regex..";
     // params_pat[1] = "regex2.."
 };
-
 
 void crawl_kvs(const char *src)
 {
@@ -233,7 +230,7 @@ int extract_key_val(const char *src, const char *pat, char *ret_str, int matched
     regmatch_t matches[2];
     char str_match[256] = {0};
 
-    char str_tmp [1024];
+    char str_tmp[1024];
 
     strcpy(str_tmp, src);
 
@@ -245,32 +242,33 @@ int extract_key_val(const char *src, const char *pat, char *ret_str, int matched
     {
         printf("reg compile error! status: %d\n", status);
     }
-    
+
     offset = 0;
     int len_str = strlen(str_tmp);
     bool skip = false;
 
     while (offset < len_str && !skip)
     {
-        printf("src: %s", str_tmp+offset);
-        status = regexec(&re, src+offset, sizeof(matches) / sizeof(matches[0]),
+        printf("src: %s", str_tmp + offset);
+        status = regexec(&re, src + offset, sizeof(matches) / sizeof(matches[0]),
                          (regmatch_t *)&matches, 0);
 
         printf("\nStatus: %d\n", status);
 
         if (status == 0)
         {
-            for(int i = 0; i < matched_segs; i++){
-            start = matches[i].rm_so;
-            end = matches[i].rm_eo;
-            printf("start: %d end: %d\n", start, end);
-            // Extract it
-            char *val = strndup(str_tmp + matches[i].rm_so,
-                                matches[i].rm_eo - matches[i].rm_so);
-            strcat(ret_str, val);
+            for (int i = 0; i < matched_segs; i++)
+            {
+                start = matches[i].rm_so;
+                end = matches[i].rm_eo;
+                printf("start: %d end: %d\n", start, end);
+                // Extract it
+                char *val = strndup(str_tmp + matches[i].rm_so,
+                                    matches[i].rm_eo - matches[i].rm_so);
+                strcat(ret_str, val);
 
-            offset = end;
-            printf("val: %s\n", val);
+                offset = end;
+                printf("val: %s\n", val);
             }
         }
         else
@@ -287,8 +285,43 @@ const char *mid_pattern = "^MID:[0-9]*[[:space:]]*";
 const char *cmd_pattern = "[[:space:]]*CMD:[A-Z]*[?]*";
 const char *params_pattern = "[^\"]+\"|[^\"\\s]+:[[:alpha:]/.]*"; //"[:space:]\"[^\"]+\"|[^\"\\s]+\":\"[^\"]+\"|[^\"\\s]+\"[:space:]";
 
-const int MSG_TOKEN_LEN = 64;
 
+
+int invoke_command(const char *command, char *reply_buf)
+{
+    // invoke shell and run the script associated to command
+
+    // if command string have ? replace with _Q
+
+    // shell exec /scripts/path/COMMAND
+
+    size_t bytes_read;
+
+    FILE *pp;
+
+    char script_path[] = "/usr/local/testerd/scripts/";
+
+    printf("command path: %s\n", script_path);
+
+    strcat(script_path, command);
+
+    pp = popen(script_path, "r");
+    if (pp != NULL)
+    {
+        char buf[60];
+
+        if (fgets(buf, 60, pp) != NULL)
+        {
+
+            puts(buf);
+            /* get out string len */
+            bytes_read = strlen(buf);
+            sprintf(reply_buf, "%s", buf);
+        }
+
+        pclose(pp);
+    }
+}
 
 int ProcessMessage(const char *message)
 {
@@ -303,7 +336,7 @@ int ProcessMessage(const char *message)
     1. extract MID
     */
 
-    //extract_key_val(message, mid_pattern, str_MID, 1);
+    // extract_key_val(message, mid_pattern, str_MID, 1);
     offset = extract_kv_pair(message + offset, mid_pattern, str_MID, 1);
     printf("str_MID: %s, offset: %d\n", str_MID, offset);
 
@@ -313,40 +346,56 @@ int ProcessMessage(const char *message)
     */
     offset = extract_kv_pair(message + offset, cmd_pattern, str_CMD, 1);
     printf("str_CMD: %s\n", str_CMD);
-   /*
-    3. verify if trailing params are valid accd to CMD params regex
-        -> iterate CMD params pat to see if a pattern matches
-    4. if valid params, parse key-value pairs
-    */
+    /*
+     3. verify if trailing params are valid accd to CMD params regex
+         -> iterate CMD params pat to see if a pattern matches
+     4. if valid params, parse key-value pairs
+     */
     extract_kv_pair("\"paTH\":/usr/local/pgm.fl nAmE:\"Prog Name\" LOT:GAO12345.1 DEVICE:0HIST001\n", "(\"[^\"\\s\\/\\]*\"|[^\\/\\\"\\s:]+):(\"[^\":]+\"|[A-Za-z0-9\\/.]*)", str_common, 0);
-    //extract_kv_pair("\"paTH\":/usr/local/pgm.fl nAmE:\"Prog Name\"", "(\\?(\\?=\".*)(\"[A-Za-z\\s]*\")|([A-Za-z]*)):(\"[^\"]*\"|[A-Za-z0-9\\/.]*)", str_common, 0);
-    //extract_kv_pair(" LOT:GAO12345.1 DEVICE:0HIST001", "(\"[^\"\\s\\/\\]*\"|[^\\/\\\"\\s]*):(\"[^\"]*\"|[A-Za-z0-9\\/.]*)", str_common, 0);
+    // extract_kv_pair("\"paTH\":/usr/local/pgm.fl nAmE:\"Prog Name\"", "(\\?(\\?=\".*)(\"[A-Za-z\\s]*\")|([A-Za-z]*)):(\"[^\"]*\"|[A-Za-z0-9\\/.]*)", str_common, 0);
+    // extract_kv_pair(" LOT:GAO12345.1 DEVICE:0HIST001", "(\"[^\"\\s\\/\\]*\"|[^\\/\\\"\\s]*):(\"[^\"]*\"|[A-Za-z0-9\\/.]*)", str_common, 0);
 
     printf("str_common: %s\n", str_common);
-   
 
-   //extract_kv_pair(" LOT:GAO12345.1 DEVICE:0HIST001", "(\"[^\"\\s\\/\\]*\"|[^\\/\\\"]*)?:(\"[^\"]*\"|[^\"]*)?", str_common, 0);
-   extract_kv_pair("\"paTH\":/usr/local/pgm.fl LOT:GAO12345.1    deviCE:0HIST001", "(\\?(\\?=\".*\")(\"[A-Za-z\\s]*\")|([A-Za-z]*)):(\"[^\"]*\"|[A-Za-z0-9\\/.]*)", str_common, 0);
-   //extract_kv_pair(" LOT:GAO12345.1 DEVICE:0HIST001", "(\\?:.*\\?\\b(broadway|acme)\\b)\\?.*", str_common, 0);
-   //(?(?=")("[A-Za-z\s]*")|([A-Za-z]*)):(("[A-Za-z\s]*")|([A-Za-z0-9\/.]*))?
-   //extract_kv_pair("LOT:GAO12345.1 DEVICE:0HIST001", "((\"[^\"\\s\\/\\]*\")|([^\"\\s\\/\\]*))?:(\"[^\"]*\"|[^\"]*)", str_common, 0);
+    // extract_kv_pair(" LOT:GAO12345.1 DEVICE:0HIST001", "(\"[^\"\\s\\/\\]*\"|[^\\/\\\"]*)?:(\"[^\"]*\"|[^\"]*)?", str_common, 0);
+    extract_kv_pair("\"paTH\":/usr/local/pgm.fl LOT:GAO12345.1    deviCE:0HIST001", "(\\?(\\?=\".*\")(\"[A-Za-z\\s]*\")|([A-Za-z]*)):(\"[^\"]*\"|[A-Za-z0-9\\/.]*)", str_common, 0);
+    // extract_kv_pair(" LOT:GAO12345.1 DEVICE:0HIST001", "(\\?:.*\\?\\b(broadway|acme)\\b)\\?.*", str_common, 0);
+    //(?(?=")("[A-Za-z\s]*")|([A-Za-z]*)):(("[A-Za-z\s]*")|([A-Za-z0-9\/.]*))?
+    // extract_kv_pair("LOT:GAO12345.1 DEVICE:0HIST001", "((\"[^\"\\s\\/\\]*\")|([^\"\\s\\/\\]*))?:(\"[^\"]*\"|[^\"]*)", str_common, 0);
     printf("str_common: %s\n", str_common);
-   
-   /* 
-   BIN_YIELD_LIMIT:1 95 2 60 ANOTHER_LIST: a b c
-   ERROR_MSG:”something is wrong”
-   ”ERROR MSG”:”something is wrong”
-   “C:\Test/test\program\path/testProgram.ext”
-   */
-   /*
 
-
-    5. invoke CMD script, pass key value pairs
-
-    building replay message string
-    1. check for " char replace with <quote>, newline with <newline> and missing value = <null>
+    /*
+    BIN_YIELD_LIMIT:1 95 2 60 ANOTHER_LIST: a b c
+    ERROR_MSG:”something is wrong”
+    ”ERROR MSG”:”something is wrong”
+    “C:\Test/test\program\path/testProgram.ext”
     */
+    /*
+
+
+     5. invoke CMD script, pass key value pairs
+    */
+    // parse command name from kv pair
+
+    char returnVal[SM_BUF_LEN];
+    int replyLen = invoke_command("TESTERLOCK", returnVal );
+
+    if(replyLen == -1)
+    {
+        //raise error
+        return -1;
+    }
+    /*
+      building reply message string
+      1. check for " char replace with <quote>, newline with <newline> and missing value = <null>
+      */
+
+     // build reply string
+     // return reply string size
+
+     return replyLen;
 }
+
 int main()
 {
     char pat[] = "/^MID:\\w+\\s+CMD:\\w+\\s+\\b[A-Z]{2,}\\b:[\\w\\s]+(?:\\s+\\b[A-Z]{2,}\\b:[\\w\\s]+)*\\\\n|$/gm";
@@ -354,7 +403,6 @@ int main()
     char key[64] = {0};
     char val[64] = {0};
 
-    
     ProcessMessage(data);
 
     // regex_match_test2();

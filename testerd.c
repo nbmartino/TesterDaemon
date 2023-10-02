@@ -21,9 +21,6 @@
 #include "testerd.h"
 
 
-#define SM_BUF_LEN 1024
-#define LG_BUF_LEN 4096
-
 
 /*************************************************************************/
 
@@ -58,7 +55,7 @@ const char *const			gLockFilePath="/var/run/testerd.pid";
 int main(void /*int argc,char *argv[]*/)
 {
 	int						result;
-	pid_t						daemonPID;
+	pid_t					daemonPID;
 	
 	/*************************************************************/
 	/* perhaps at this stage you would read a configuration file */
