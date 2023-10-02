@@ -6,7 +6,7 @@
 
 
 
-int extract_kv_pair(const char *source, const char *regexString, char *ret_str, int matched_segs)
+int extract_kv_pair(const char *source, const char *regexString, char *ret_str, int match_num, int group_num)
 {
   //char * source = "___ abc123def ___ ghi456 ___";
   //char * regexString = "[a-z]*([0-9]+)([a-z]*)";
@@ -52,12 +52,17 @@ int extract_kv_pair(const char *source, const char *regexString, char *ret_str, 
           printf("Match %u, Group %u: [%2u-%2u]: %s\n",
                  m, g, groupArray[g].rm_so, groupArray[g].rm_eo,
                  cursorCopy + groupArray[g].rm_so);
-            strcpy(ret_str,cursorCopy + groupArray[g].rm_so);
+            /*if ((m == match_num) && (g == group_num))
+            {
+             strcpy (ret_str,cursorCopy + groupArray[g].rm_so);
+            }*/
+            
         }
       cursor += offset;
     }
 
   regfree(&regexCompiled);
 
+  strncpy(ret_str, source, cursor - source);
   return cursor - source;
 }

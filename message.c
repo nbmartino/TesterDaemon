@@ -13,9 +13,11 @@ Code, Compile, Run and Debug online from anywhere in world.
 #include <assert.h>
 #include <stdbool.h>
 #include "globaldefs.h"
+#include "data.h"
 
-extern int extract_kv_pair(const char *source, const char *regexString, char *ret_str, int matched_segs);
+extern int extract_kv_pair(const char *source, const char *regexString, char *ret_str, int match_num, int group_num);
 extern void init_commands();
+extern int findCmdIndex(const char *name);
 
 /*
  * Match string against the extended regular expression in
@@ -281,11 +283,9 @@ int extract_key_val(const char *src, const char *pat, char *ret_str, int matched
     return 0;
 }
 
-const char *mid_pattern = "^MID:[0-9]*[[:space:]]*";
+const char *mid_pattern = "^MID:[0-9]*[\\s]*";
 const char *cmd_pattern = "[[:space:]]*CMD:[A-Z]*[?]*";
 const char *params_pattern = "[^\"]+\"|[^\"\\s]+:[[:alpha:]/.]*"; //"[:space:]\"[^\"]+\"|[^\"\\s]+\":\"[^\"]+\"|[^\"\\s]+\"[:space:]";
-
-
 
 int invoke_command(const char *command, char *reply_buf)
 {
@@ -323,46 +323,63 @@ int invoke_command(const char *command, char *reply_buf)
     }
 }
 
+int copyValueFromToken(const char* strSrc, char *rcvBuf)
+{
+
+    char tmp[MSG_TOKEN_LEN];
+    printf("strSrc: %s\n", strSrc);
+    char *segment = strtok( strSrc, ":");
+    while(segment != NULL)
+    {
+        strcpy(rcvBuf, segment);
+        printf("rcvBuf: %s\n", segment);
+        segment = strtok(NULL,":");
+    }
+    
+    return -1;
+}
+
 int ProcessMessage(const char *message)
 {
     int retval = 0, offset = 0;
-    char str_MID[MSG_TOKEN_LEN] = "";
-    char str_CMD[MSG_TOKEN_LEN] = "";
-    char str_common[MSG_TOKEN_LEN] = "";
+    
+    struct CommandInstance CmdInst;
 
-    init_commands();
+    char strCommon[MSG_TOKEN_LEN];
+
+    char strToken[MSG_TOKEN_LEN];
 
     /*
     1. extract MID
     */
 
     // extract_key_val(message, mid_pattern, str_MID, 1);
-    offset = extract_kv_pair(message + offset, mid_pattern, str_MID, 1);
-    printf("str_MID: %s, offset: %d\n", str_MID, offset);
+    offset = extract_kv_pair(message + offset, mid_pattern, strToken, 0, 0);
+    copyValueFromToken( strToken, CmdInst.strMID);
+    printf("str_MID: %s, offset: %d\n", CmdInst.strMID, offset);
 
     /*
     2. extract CMD
     2.1 check if single instance of CMD only, otherwise raise error
     */
-    offset = extract_kv_pair(message + offset, cmd_pattern, str_CMD, 1);
-    printf("str_CMD: %s\n", str_CMD);
+    offset = extract_kv_pair(message + offset, cmd_pattern, strToken, 0, 0);
+    copyValueFromToken(strToken, CmdInst.strCMD);
+    printf("str_CMD: %s\n", CmdInst.strCMD);
+
+    printf("\nCommand index: %d\n", findCmdIndex(CmdInst.strCMD)) ;
     /*
      3. verify if trailing params are valid accd to CMD params regex
          -> iterate CMD params pat to see if a pattern matches
      4. if valid params, parse key-value pairs
      */
-    extract_kv_pair("\"paTH\":/usr/local/pgm.fl nAmE:\"Prog Name\" LOT:GAO12345.1 DEVICE:0HIST001\n", "(\"[^\"\\s\\/\\]*\"|[^\\/\\\"\\s:]+):(\"[^\":]+\"|[A-Za-z0-9\\/.]*)", str_common, 0);
-    // extract_kv_pair("\"paTH\":/usr/local/pgm.fl nAmE:\"Prog Name\"", "(\\?(\\?=\".*)(\"[A-Za-z\\s]*\")|([A-Za-z]*)):(\"[^\"]*\"|[A-Za-z0-9\\/.]*)", str_common, 0);
-    // extract_kv_pair(" LOT:GAO12345.1 DEVICE:0HIST001", "(\"[^\"\\s\\/\\]*\"|[^\\/\\\"\\s]*):(\"[^\"]*\"|[A-Za-z0-9\\/.]*)", str_common, 0);
-
-    printf("str_common: %s\n", str_common);
+    extract_kv_pair("\"paTH\":/usr/local/pgm.fl nAmE:\"Prog Name\" LOT:GAO12345.1 DEVICE:0HIST001\n", "(\"[^\"\\s\\/\\]*\"|[^\\/\\\"\\s:]+):(\"[^\":]+\"|[A-Za-z0-9\\/.]*)", strCommon, 0, 0);
+   
+    printf("str_common: %s\n", strCommon);
 
     // extract_kv_pair(" LOT:GAO12345.1 DEVICE:0HIST001", "(\"[^\"\\s\\/\\]*\"|[^\\/\\\"]*)?:(\"[^\"]*\"|[^\"]*)?", str_common, 0);
-    extract_kv_pair("\"paTH\":/usr/local/pgm.fl LOT:GAO12345.1    deviCE:0HIST001", "(\\?(\\?=\".*\")(\"[A-Za-z\\s]*\")|([A-Za-z]*)):(\"[^\"]*\"|[A-Za-z0-9\\/.]*)", str_common, 0);
-    // extract_kv_pair(" LOT:GAO12345.1 DEVICE:0HIST001", "(\\?:.*\\?\\b(broadway|acme)\\b)\\?.*", str_common, 0);
-    //(?(?=")("[A-Za-z\s]*")|([A-Za-z]*)):(("[A-Za-z\s]*")|([A-Za-z0-9\/.]*))?
-    // extract_kv_pair("LOT:GAO12345.1 DEVICE:0HIST001", "((\"[^\"\\s\\/\\]*\")|([^\"\\s\\/\\]*))?:(\"[^\"]*\"|[^\"]*)", str_common, 0);
-    printf("str_common: %s\n", str_common);
+    extract_kv_pair("\"paTH\":/usr/local/pgm.fl LOT:GAO12345.1    deviCE:0HIST001", "(\\?(\\?=\".*\")(\"[A-Za-z\\s]*\")|([A-Za-z]*)):(\"[^\"]*\"|[A-Za-z0-9\\/.]*)", strCommon, 0, 0);
+   
+    printf("str_common: %s\n", strCommon);
 
     /*
     BIN_YIELD_LIMIT:1 95 2 60 ANOTHER_LIST: a b c
@@ -378,11 +395,12 @@ int ProcessMessage(const char *message)
     // parse command name from kv pair
 
     char returnVal[SM_BUF_LEN];
-    int replyLen = invoke_command("TESTERLOCK", returnVal );
 
-    if(replyLen == -1)
+    int replyLen = invoke_command("TESTERLOCK", returnVal);
+
+    if (replyLen == -1)
     {
-        //raise error
+        // raise error
         return -1;
     }
     /*
@@ -390,45 +408,26 @@ int ProcessMessage(const char *message)
       1. check for " char replace with <quote>, newline with <newline> and missing value = <null>
       */
 
-     // build reply string
-     // return reply string size
+    // build reply string
+    // return reply string size
 
-     return replyLen;
+    return replyLen;
+
+    return 0;
 }
 
-int main()
+int main(int argc, char *argv[])
 {
     char pat[] = "/^MID:\\w+\\s+CMD:\\w+\\s+\\b[A-Z]{2,}\\b:[\\w\\s]+(?:\\s+\\b[A-Z]{2,}\\b:[\\w\\s]+)*\\\\n|$/gm";
     char data[] = {"MiD:123 CMD:PrGn paTH:/usr/local/pgm.fl nAmE:\"Prog Name\" \n"};
     char key[64] = {0};
     char val[64] = {0};
 
-    ProcessMessage(data);
+    init_commands();
 
-    // regex_match_test2();
-    // crawl_kvs(str);
-    /*
-    // char (*tokens) [256] = malloc (10* size)
-    char **tokens;
-
-    tokens = malloc(10 * sizeof(char *));
-    for (int i = 0; i < 10; i++)
-        tokens[i] = malloc((256) * sizeof(char));
-    // for (int i = 0; i < 10; i++)
-    //     tokens[i] = "";
-    tokenize(ex_str, tokens);
-
-    for (int i = 0; i < 10; i++)
-        printf("%d - %s\n", i, tokens[i]);
-    free(tokens);
-    find_any_key_value(ex_str, key, val);
-    find_key_value("MID:123 CMD:START MODE:DEBUG FOO:bar baz", "", "");
-
-    // check message format
-    // parse message
-    // call script associated to command
-    int result = match("MID:123 CMD:START MODE:DEBUG FOO:bar baz", "/^MID:\\w+\\s+CMD:\\w+\\s+\\b[A-Z]{2,}\\b:[\\w\\s]+(?:\\s+\\b[A-Z]{2,}\\b:[\\w\\s]+)*\\\\n|$/gm");
-    printf("result == %d", result);
-    */
+    if (argc == 2)
+    {
+        ProcessMessage(argv[1]);
+    }
     return 0;
 }
