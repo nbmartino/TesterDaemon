@@ -1,14 +1,12 @@
- 
+
 #include <assert.h>
 #include <stdio.h>
 #include "data.h"
 
-
-
- extern void initCommandRefs();
- extern void cleanUpCommandRefs();
- extern int ProcessMessage(const char *message);
- extern struct CommandObject *CmdObjPtr;
+extern void initCommandRefs();
+extern void cleanUpCommandRefs();
+extern int ProcessMessage(const char *message);
+extern struct CommandObject *CmdObjPtr;
 
 int main(int argc, char *argv[])
 {
@@ -18,16 +16,19 @@ int main(int argc, char *argv[])
     char val[64] = {0};
     int ret_val;
 
-
     initCommandRefs();
 
     /* Tests */
 
-    /* 1. "MID:1 CMD:TESTERLOCK LOCK:TRUE\n"  */
-    const char testerLock[] = "MID:1 CMD:TESTERLOCK LOCK:TRUE\n";    
+    /* 1. "MID:1 CMD:TESTERLOCK LOCK:TRUE\n" */
+    /*const char testerLock[] = "MID:1 CMD:TESTERLOCK LOCK:TRUE\n";
     ret_val  = ProcessMessage(testerLock);
     printf("After invoking command, reply string: %s\n", CmdObjPtr->strReplyMsg);
-    
+    */
+    /* 2. "MID:2 CMD:TESTERLOCK?\n" */
+    const char testerLock_q[] = "MID:2 CMD:TESTERLOCK?\n";
+    ret_val  = ProcessMessage(testerLock_q);
+    printf("After invoking command, reply string: %s\n", CmdObjPtr->strReplyMsg);
 
     /*
     Test for these:
@@ -37,6 +38,6 @@ int main(int argc, char *argv[])
     “C:\Test/test\program\path/testProgram.ext”
     */
 
-   cleanUpCommandRefs();
+    /* cleanUpCommandRefs(); */
     return 0;
 }

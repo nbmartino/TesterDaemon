@@ -39,11 +39,21 @@ int invokeCommand(struct CommandDescriptor *cmdDescPtr)
     FILE *pp;
 
     char script_path[MSG_TOKEN_LEN] = "/Users/a1234/Documents/testerd/scripts/"; /* temp hack; should fetch from config file */
+    char strLocalCmd[CMD_NAME_LEN];
+   
+    /* convert ? to _Q */
+    char *qPtr;
+    if( strchr(CmdObjPtr->strCMD, '?') != NULL)
+    {
+        strncpy( strLocalCmd, CmdObjPtr->strCMD,strlen(CmdObjPtr->strCMD)-1);
+        strcat( strLocalCmd, "_Q");
+    }
 
-    debug_log("\ncommand: %s script path: %s\n", CmdObjPtr->strCMD, script_path);
+    debug_log("\ncommand: %s script path: %s\n", strLocalCmd, script_path);
 
-    strcat(script_path, CmdObjPtr->strCMD);
+    strcat(script_path, strLocalCmd);
     strcat(script_path, " ");
+    
     /* params - concatenate param tokens separated by [tab] character */
     for (int i = 0; i < 1; i++)
     {
@@ -100,7 +110,7 @@ void initCmdObjPtr()
 
 void cleanUpCmdInstPtr()
 {
-    if( CmdObjPtr == NULL)
+    if (CmdObjPtr == NULL)
         return;
 
     if (CmdObjPtr->strParamTokens != NULL)
@@ -111,10 +121,9 @@ void cleanUpCmdInstPtr()
 
 void initParamTokens(int paramsCnt)
 {
-   
+
     CmdObjPtr->strParamTokens = malloc(paramsCnt * (MSG_TOKEN_LEN + sizeof(char *)));
     strcpy(CmdObjPtr->strParamTokens, "");
-  
 }
 
 int ProcessMessage(const char *message)
@@ -133,7 +142,7 @@ int ProcessMessage(const char *message)
     debug_log("str_MID: %s, offset: %d\n", CmdObjPtr->strMID, offset);
 
     /* 2. extract CMD */
-   offset += extract_kv_pair(message + offset, cmd_pattern, strToken, 0, 0);
+    offset += extract_kv_pair(message + offset, cmd_pattern, strToken, 0, 0);
     copyValueFromToken(strToken, CmdObjPtr->strCMD);
     debug_log("str_CMD: %s\n", CmdObjPtr->strCMD);
 
@@ -161,6 +170,7 @@ int ProcessMessage(const char *message)
             strcat(CmdObjPtr->strParamTokens, "\t");
         }
     }
+
     strcat(CmdObjPtr->strParamTokens, "\"");
     extract_kv_pair("\"paTH\":/usr/local/pgm.fl nAmE:\"Prog Name\" LOT:GAO12345.1 DEVICE:0HIST001\n", "(\"[^\"\\s\\/\\]*\"|[^\\/\\\"\\s:]+):(\"[^\":]+\"|[A-Za-z0-9\\/.]*)", strCommon, 0, 0);
 
@@ -186,7 +196,7 @@ int ProcessMessage(const char *message)
     {
         debug_log("\nCommand index: %d\n", index);
     }
-    
+
     /*
       building reply message string
       1. check for " char replace with <quote>, newline with <newline> and missing value = <null>

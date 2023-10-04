@@ -15,10 +15,16 @@ void initializeCmdDesc(struct CommandDescriptor *inputCmd, int inputIndex, char 
     strcpy(inputCmd->name, inputName);
     inputCmd->paramsCount = inputParamsCount;
     inputCmd->paramsRegex = malloc(inputParamsCount * sizeof(char));
-
-    for (int i = 0; i < inputParamsCount; i++)
+    if (inputParamsCount == 0)
     {
-        inputCmd->paramsRegex[i] = malloc((PARAMS_REGEX_LEN + 1) * sizeof(char));
+        inputCmd->paramsRegex = NULL; 
+    }
+    else
+    {
+        for (int i = 0; i < inputParamsCount; i++)
+        {
+            inputCmd->paramsRegex[i] = malloc((PARAMS_REGEX_LEN + 1) * sizeof(char));
+        }
     }
 }
 
@@ -61,6 +67,11 @@ void initCommandRefs()
     initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "TESTERLOCK", paramsCount);
     strcpy(cmdDescPtr->paramsRegex[0], "LOCK:FALSE");
     strcpy(cmdDescPtr->paramsRegex[1], "LOCK:TRUE)");
+
+    /* TESTERLOCK? */
+    paramsCount = 0;
+    cmdDescPtr = &cmdDescList[++gCmdTotalNum];
+    initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "TESTERLOCK?", paramsCount);
 
     /* ACCSLEVEL */
     paramsCount = 0;
@@ -162,6 +173,6 @@ void cleanUpCommandRefs()
     for (int idx = 0; idx < gCmdTotalNum; idx++)
     {
         if (cmdDescList[idx].paramsRegex != NULL)
-            free(cmdDescList[idx].paramsRegex)            
+            free(cmdDescList[idx].paramsRegex);
     }
 }
