@@ -27,6 +27,32 @@ const char *mid_pattern = "^MID:[0-9]*[\\s]*";
 const char *cmd_pattern = "[[:space:]]*CMD:[A-Z]*[?]*";
 const char *params_pattern = "[^\"]+\"|[^\"\\s]+:[[:alpha:]/.]*"; //"[:space:]\"[^\"]+\"|[^\"\\s]+\":\"[^\"]+\"|[^\"\\s]+\"[:space:]";
 
+int runPopen(const char *command, char *retBuf)
+{
+   
+    size_t bytes_read = 0;
+    FILE *pp;
+
+    pp = popen(command, "r");
+
+    if (pp != NULL)
+    {
+        char buf[60];
+
+        if (fgets(buf, 60, pp) != NULL)
+        {
+            puts(buf);
+            /* get out string len */
+            bytes_read = strlen(buf);
+            sprintf(retBuf, "%s", buf);
+        }
+
+        pclose(pp);
+    }
+
+    return (int)bytes_read;
+}
+
 int invokeCommand(struct CommandDescriptor *cmdDescPtr)
 {
     /* invoke shell and run the script associated to command */
@@ -35,7 +61,7 @@ int invokeCommand(struct CommandDescriptor *cmdDescPtr)
 
     /* shell exec /scripts/path/COMMAND */
 
-    size_t bytes_read = 0;
+    size_t bytesRead = 0;
     FILE *pp;
 
     char script_path[MSG_TOKEN_LEN] = "/Users/a1234/Documents/testerd/scripts/"; /* temp hack; should fetch from config file */
@@ -66,7 +92,9 @@ int invokeCommand(struct CommandDescriptor *cmdDescPtr)
 
     debug_log("\nscript path: %s\n", script_path);
 
-    pp = popen(script_path, "r");
+     bytesRead = runPopen(script_path, CmdObjPtr->strReplyMsg);
+
+   /*  pp = popen(script_path, "r");
 
     if (pp != NULL)
     {
@@ -75,15 +103,15 @@ int invokeCommand(struct CommandDescriptor *cmdDescPtr)
         if (fgets(buf, 60, pp) != NULL)
         {
             puts(buf);
-            /* get out string len */
+
             bytes_read = strlen(buf);
             sprintf(CmdObjPtr->strReplyMsg, "%s", buf);
         }
 
         pclose(pp);
-    }
+    } */
 
-    return (int)bytes_read;
+    return (int)bytesRead;
 }
 
 int copyValueFromToken(const char *strSrc, char *rcvBuf)
