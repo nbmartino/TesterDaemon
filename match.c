@@ -4,12 +4,6 @@
 
 int extract_kv_pair(const char *source, const char *regexString, char *ret_str, int match_num, int group_num)
 {
-  //char * source = "___ abc123def ___ ghi456 ___";
-  //char * regexString = "[a-z]*([0-9]+)([a-z]*)";
-
-  //char * source = "MiD:123 CMD:PrGn paTH:/usr/local/pgm.fl nAmE:\"Prog Name\" \n";
-  //char * regexString = "^MID:[0-9]*[[:space:]]*";
- 
 
   size_t maxMatches = 5;
   size_t maxGroups = 5;
@@ -19,9 +13,11 @@ int extract_kv_pair(const char *source, const char *regexString, char *ret_str, 
   unsigned int m;
   char * cursor;
 
+  debug_log("\nsource: %s\n", source);
+
   if (regcomp(&regexCompiled, regexString, REG_EXTENDED | REG_ICASE))
     {
-      printf("Could not compile regular expression.\n");
+      debug_log("Could not compile regular expression.\n");
       return 1;
     };
 
@@ -44,21 +40,23 @@ int extract_kv_pair(const char *source, const char *regexString, char *ret_str, 
 
           char cursorCopy[strlen(cursor) + 1];
           strcpy(cursorCopy, cursor);
+            
           cursorCopy[groupArray[g].rm_eo] = 0;
-          printf("Match %u, Group %u: [%2u-%2u]: %s\n",
+          debug_log("Match %u, Group %u: [%2u-%2u]: %s\n",
                  m, g, groupArray[g].rm_so, groupArray[g].rm_eo,
                  cursorCopy + groupArray[g].rm_so);
-            /*if ((m == match_num) && (g == group_num))
+          /* copy KV token */
+          if ((m == match_num) && (g == group_num))
             {
              strcpy (ret_str,cursorCopy + groupArray[g].rm_so);
-            }*/
+            }  
             
         }
       cursor += offset;
+      debug_log("cursor: %lld, offset %lld", cursor, offset);
     }
 
   regfree(&regexCompiled);
-
-  strncpy(ret_str, source, cursor - source);
+  
   return cursor - source;
 }

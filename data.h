@@ -1,6 +1,6 @@
 #include "globaldefs.h"
 
-struct CommandReference
+struct CommandDescriptor
 {
     int index;
     int paramsCount;
@@ -8,7 +8,7 @@ struct CommandReference
     char **paramsRegex;
 };
 
-struct CommandInstance
+struct CommandObject
 {
     char strMID[MSG_TOKEN_LEN];
     char strCMD[MSG_TOKEN_LEN];
@@ -17,5 +17,5 @@ struct CommandInstance
 
 };
 
-struct CommandReference cmdRefList[50];
+struct CommandDescriptor cmdDescList[50];
 

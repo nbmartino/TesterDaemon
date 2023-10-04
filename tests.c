@@ -6,8 +6,9 @@
 
 
  extern void initCommandRefs();
+ extern void cleanUpCommandRefs();
  extern int ProcessMessage(const char *message);
- extern struct CommandInstance CmdInst;
+ extern struct CommandObject *CmdObjPtr;
 
 int main(int argc, char *argv[])
 {
@@ -25,7 +26,7 @@ int main(int argc, char *argv[])
     /* 1. "MID:1 CMD:TESTERLOCK LOCK:TRUE\n"  */
     const char testerLock[] = "MID:1 CMD:TESTERLOCK LOCK:TRUE\n";    
     ret_val  = ProcessMessage(testerLock);
-    printf("after invoking command, reply string: %s\n", CmdInst.strReplyMsg);
+    printf("After invoking command, reply string: %s\n", CmdObjPtr->strReplyMsg);
     
 
     /*
@@ -35,5 +36,7 @@ int main(int argc, char *argv[])
     ”ERROR MSG”:”something is wrong”
     “C:\Test/test\program\path/testProgram.ext”
     */
+
+   cleanUpCommandRefs();
     return 0;
 }

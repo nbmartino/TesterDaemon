@@ -1,3 +1,5 @@
+#include "logging.h"
+
 #define SM_BUF_LEN 1024
 #define LG_BUF_LEN 4096
 #define MSG_TOKEN_LEN 1024
