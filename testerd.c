@@ -22,6 +22,7 @@
 
 
 
+
 /*************************************************************************/
 
 /* global variables and constants */
@@ -405,7 +406,9 @@ int ConfigureSignalHandlers(void)
 	signal(SIGSTKFLT,FatalSigHandler);
 #endif
 	signal(SIGCONT,FatalSigHandler);
+#ifdef	SIGPWR
 	signal(SIGPWR,FatalSigHandler);
+#endif
 	signal(SIGSYS,FatalSigHandler);
 	
 	/* these handlers are important for control of the daemon process */

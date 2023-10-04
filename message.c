@@ -12,6 +12,7 @@ Code, Compile, Run and Debug online from anywhere in world.
 #include <string.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <unistd.h>
 #include "globaldefs.h"
 #include "data.h"
 #include "logging.h"
@@ -21,15 +22,15 @@ extern void initCommandRefs();
 extern int findCmdIndex(const char *name);
 extern int getParamsCnt(const char *cmdName);
 
-struct CommandObject *CmdObjPtr;
+struct CommandObject *CmdObjPtr = NULL;
 
 const char *mid_pattern = "^MID:[0-9]*[\\s]*";
 const char *cmd_pattern = "[[:space:]]*CMD:[A-Z]*[?]*";
 const char *params_pattern = "[^\"]+\"|[^\"\\s]+:[[:alpha:]/.]*"; //"[:space:]\"[^\"]+\"|[^\"\\s]+\":\"[^\"]+\"|[^\"\\s]+\"[:space:]";
 
-int runPopen(const char *command, char *retBuf)
+int runPopen(const char *command, char *retBuf, int bufSize)
 {
-   
+
     size_t bytes_read = 0;
     FILE *pp;
 
@@ -37,9 +38,9 @@ int runPopen(const char *command, char *retBuf)
 
     if (pp != NULL)
     {
-        char buf[60];
+        char buf[bufSize];
 
-        if (fgets(buf, 60, pp) != NULL)
+        if (fgets(buf, bufSize, pp) != NULL)
         {
             puts(buf);
             /* get out string len */
@@ -62,24 +63,60 @@ int invokeCommand(struct CommandDescriptor *cmdDescPtr)
     /* shell exec /scripts/path/COMMAND */
 
     size_t bytesRead = 0;
-    FILE *pp;
 
-    char script_path[MSG_TOKEN_LEN] = "/Users/a1234/Documents/testerd/scripts/"; /* temp hack; should fetch from config file */
+    char script_path[SM_BUF_LEN]; 
     char strLocalCmd[CMD_NAME_LEN];
-   
-    /* convert ? to _Q */
-    char *qPtr;
-    if( strchr(CmdObjPtr->strCMD, '?') != NULL)
+    char strPID[32] = {0};
+
+    /* retrieve exe path to locate command scripts folder
+
+    if (access(TESTERD_PID_PATH, F_OK) != 0)
     {
-        strncpy( strLocalCmd, CmdObjPtr->strCMD,strlen(CmdObjPtr->strCMD)-1);
-        strcat( strLocalCmd, "_Q");
+        debug_log("PID file does not exist : %s\n", TESTERD_PID_PATH);
+        return -1;
+    }
+
+    if (runPopen("cat /var/run/testerd.pid", strPID, SM_BUF_LEN) == -1)
+    {
+        debug_log("cannot read /var/log/testerd.pid\n");
+        return -1;
+    }
+    else
+    {
+        debug_log("tester.pid path : %s\n", strPID);
+    }
+ */
+
+
+
+#ifdef __MACH__
+    strcpy(script_path, "/Users/a1234/Documents/testerd/scripts/"); /* for improvement, should fetch from config file */
+#else
+    #if defined(sun) || defined(__sun)
+        #if defined(__SVR4) || defined(__svr4__)
+        /* Solaris */
+        sprintf(script_path,"%s/scripts/", PROD_HOME_DIR);
+        #else
+        /* SunOS */
+        sprintf(script_path,"%s/scripts/", PROD_HOME_DIR);
+        #endif
+#endif
+
+#endif
+
+    /* convert ? to _Q */
+
+    if (strchr(CmdObjPtr->strCMD, '?') != NULL)
+    {
+        strncpy(strLocalCmd, CmdObjPtr->strCMD, strlen(CmdObjPtr->strCMD) - 1);
+        strcat(strLocalCmd, "_Q");
     }
 
     debug_log("\ncommand: %s script path: %s\n", strLocalCmd, script_path);
 
     strcat(script_path, strLocalCmd);
     strcat(script_path, " ");
-    
+
     /* params - concatenate param tokens separated by [tab] character */
     for (int i = 0; i < 1; i++)
     {
@@ -92,24 +129,24 @@ int invokeCommand(struct CommandDescriptor *cmdDescPtr)
 
     debug_log("\nscript path: %s\n", script_path);
 
-     bytesRead = runPopen(script_path, CmdObjPtr->strReplyMsg);
+    bytesRead = runPopen(script_path, CmdObjPtr->strReplyMsg, SM_BUF_LEN);
 
-   /*  pp = popen(script_path, "r");
+    /*  pp = popen(script_path, "r");
 
-    if (pp != NULL)
-    {
-        char buf[60];
+     if (pp != NULL)
+     {
+         char buf[60];
 
-        if (fgets(buf, 60, pp) != NULL)
-        {
-            puts(buf);
+         if (fgets(buf, 60, pp) != NULL)
+         {
+             puts(buf);
 
-            bytes_read = strlen(buf);
-            sprintf(CmdObjPtr->strReplyMsg, "%s", buf);
-        }
+             bytes_read = strlen(buf);
+             sprintf(CmdObjPtr->strReplyMsg, "%s", buf);
+         }
 
-        pclose(pp);
-    } */
+         pclose(pp);
+     } */
 
     return (int)bytesRead;
 }
