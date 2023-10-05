@@ -17,5 +17,5 @@ struct CommandObject
 
 };
 
-struct CommandDescriptor cmdDescList[50];
+struct CommandDescriptor cmdDescList[60];
 

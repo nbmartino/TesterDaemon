@@ -8,3 +8,4 @@
 
 #define TESTERD_PID_PATH "/var/run/testerd.pid"
 #define PROD_HOME_DIR "/usr/prod/testerd"
+#define PARAM_SEPERATOR "\t"

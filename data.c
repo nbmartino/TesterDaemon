@@ -30,19 +30,22 @@ void initializeCmdDesc(struct CommandDescriptor *inputCmd, int inputIndex, char 
 
 int findCmdIndex(const char *name)
 {
-    // debug_log("\n command name: %s", name);
+    debug_log("\n command name: %s", name);
     for (int ctr = 0; ctr < gCmdTotalNum; ctr++)
     {
-        debug_log("\nindex: %d, command name: %s", ctr, cmdDescList[ctr].name);
+        /*  debug_log("\nindex: %d, command name: %s", ctr, cmdDescList[ctr].name); */
         if (strcasecmp(cmdDescList[ctr].name, name) == 0)
         {
+            debug_log("\nfound! index: %d, command name: %s", ctr, cmdDescList[ctr].name);
             return ctr;
         }
+
     }
+    debug_log("\nindex not found, command name: %s\n", name);
     return -1;
 }
 
-int getParamsCnt(const char *cmdName)
+/* int getParamsCnt(const char *cmdName)
 {
     debug_log("\ncmdName: %s\n");
     int idx = findCmdIndex(cmdName);
@@ -55,7 +58,7 @@ int getParamsCnt(const char *cmdName)
         return idx;
     }
 }
-
+ */
 void initCommandRefs()
 {
 
@@ -74,58 +77,104 @@ void initCommandRefs()
     initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "TESTERLOCK?", paramsCount);
 
     /* ACCSLEVEL */
-    paramsCount = 0;
+    paramsCount = 1;
     cmdDescPtr = &cmdDescList[++gCmdTotalNum];
     initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "ACCSLEVEL", paramsCount);
 
-    /* OPER */
+    /* ACCSLEVEL? */
     paramsCount = 0;
+    cmdDescPtr = &cmdDescList[++gCmdTotalNum];
+    initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "ACCSLEVEL?", paramsCount);
+
+    /* OPER */
+    paramsCount = 1;
     cmdDescPtr = &cmdDescList[++gCmdTotalNum];
     initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "OPER", paramsCount);
 
     /* PRGN */
-    paramsCount = 0;
+    paramsCount = 2;
     cmdDescPtr = &cmdDescList[++gCmdTotalNum];
     initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "PRGN", paramsCount);
 
-    /* LOT */
+    /* PRGN? */
     paramsCount = 0;
+    cmdDescPtr = &cmdDescList[++gCmdTotalNum];
+    initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "PRGN?", paramsCount);
+
+
+    /* LOT */
+    paramsCount = 1;
     cmdDescPtr = &cmdDescList[++gCmdTotalNum];
     initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "LOT", paramsCount);
 
-    /* DEVICE */ paramsCount = 0;
+    /* LOT? */
+    paramsCount = 0;
+    cmdDescPtr = &cmdDescList[++gCmdTotalNum];
+    initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "LOT?", paramsCount);
+
+
+    /* DEVICE */ paramsCount = 1;
     cmdDescPtr = &cmdDescList[++gCmdTotalNum];
     initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "DEVICE", paramsCount);
 
+    /* DEVICE? */ paramsCount = 0;
+    cmdDescPtr = &cmdDescList[++gCmdTotalNum];
+    initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "DEVICE?", paramsCount);
+
     /* TESTMODE */
-    paramsCount = 0;
+    paramsCount = 1;
     cmdDescPtr = &cmdDescList[++gCmdTotalNum];
     initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "TESTMODE", paramsCount);
+
+    /* TESTMODE */
+    paramsCount = 1;
+    cmdDescPtr = &cmdDescList[++gCmdTotalNum];
+    initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "TESTMODE?", paramsCount);
+
+    /* PCSITES */
+    paramsCount = 1;
+    cmdDescPtr = &cmdDescList[++gCmdTotalNum];
+    initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "PCSITES", paramsCount);
 
     /* PCSITES */
     paramsCount = 0;
     cmdDescPtr = &cmdDescList[++gCmdTotalNum];
-    initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "PCSITES", paramsCount);
+    initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "PCSITES?", paramsCount);
 
     /* PBCARD */
-    paramsCount = 0;
+    paramsCount = 1;
     cmdDescPtr = &cmdDescList[++gCmdTotalNum];
     initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "PBCARD", paramsCount);
 
-    /* LDBRD */
+    /* PBCARD? */
     paramsCount = 0;
+    cmdDescPtr = &cmdDescList[++gCmdTotalNum];
+    initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "PBCARD?", paramsCount);
+
+    /* LDBRD */
+    paramsCount = 1;
     cmdDescPtr = &cmdDescList[++gCmdTotalNum];
     initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "LDBRD", paramsCount);
 
-    /* DLNAME */
+     /* LDBRD? */
     paramsCount = 0;
+    cmdDescPtr = &cmdDescList[++gCmdTotalNum];
+    initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "LDBRD?", paramsCount);
+
+    /* DLNAME */
+    paramsCount = 2;
     cmdDescPtr = &cmdDescList[++gCmdTotalNum];
     initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "DLNAME", paramsCount);
 
-    /* DLOG */
-    paramsCount = 0;
+    /* DLOGI */
+    paramsCount = 1;
     cmdDescPtr = &cmdDescList[++gCmdTotalNum];
     initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "DLOG", paramsCount);
+
+    /* DLOGI? */
+    paramsCount = 0;
+    cmdDescPtr = &cmdDescList[++gCmdTotalNum];
+    initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "DLOG?", paramsCount);
 
     /* DLSTART */
     paramsCount = 0;
@@ -133,17 +182,17 @@ void initCommandRefs()
     initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "DLSTART", paramsCount);
 
     /* WFR */
-    paramsCount = 0;
+    paramsCount = 1;
     cmdDescPtr = &cmdDescList[++gCmdTotalNum];
     initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "WFR", paramsCount);
 
-    /* SCRIBE */
+    /* WFR? */
     paramsCount = 0;
     cmdDescPtr = &cmdDescList[++gCmdTotalNum];
-    initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "SCRIBE", paramsCount);
+    initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "WFR?", paramsCount);
 
     /* SOT */
-    paramsCount = 0;
+    paramsCount = 5;
     cmdDescPtr = &cmdDescList[++gCmdTotalNum];
     initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "SOT", paramsCount);
 
@@ -153,19 +202,35 @@ void initCommandRefs()
     initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "EOW", paramsCount);
 
     /* DLEND */
-    paramsCount = 0;
+    paramsCount = 1;
     cmdDescPtr = &cmdDescList[++gCmdTotalNum];
     initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "DLEND", paramsCount);
 
     /* DLGEN */
-    paramsCount = 0;
+    paramsCount = 1;
     cmdDescPtr = &cmdDescList[++gCmdTotalNum];
     initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "DLGEN", paramsCount);
+
+    /* DLGEN? */
+    paramsCount = 0;
+    cmdDescPtr = &cmdDescList[++gCmdTotalNum];
+    initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "DLGEN?", paramsCount);
 
     /* EOL */
     paramsCount = 0;
     cmdDescPtr = &cmdDescList[++gCmdTotalNum];
     initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "EOL", paramsCount);
+
+    /* SCRIBE */
+    paramsCount = 1;
+    cmdDescPtr = &cmdDescList[++gCmdTotalNum];
+    initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "SCRIBE", paramsCount);
+
+    /* SCRIBE? */
+    paramsCount = 0;
+    cmdDescPtr = &cmdDescList[++gCmdTotalNum];
+    initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "SCRIBE?", paramsCount);
+
 }
 
 void cleanUpCommandRefs()
