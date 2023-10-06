@@ -147,7 +147,6 @@ int invokeScript(struct CommandDescriptor *cmdDescPtr)
         char tmpBuf[LG_BUF_LEN] = "";
 
         sprintf(tmpBuf, "%s\"%s\"", script_path, CmdObjPtr->strParamTokens);
-        strcpy(script_path, trim(tmpBuf));
     }
     else /* just append the params */
     {
@@ -274,13 +273,13 @@ int ProcessMessage(const char *message, char *replyBuf)
      */
 
    
-    char multiBuf[LG_BUF_LEN] = "";
+    char multiBuf[LG_BUF_LEN]={0};
     extract_kv_pair(message + offset, params_pattern, strCommon, 0, 0, multiBuf);
 
     
 
     /* copy tokens to strTokens */
-    strcpy(CmdObjPtr->strParamTokens, trim(multiBuf));
+    strcpy(CmdObjPtr->strParamTokens, multiBuf);
 
     log_debug("\nmultiBuf: [%s]\n", multiBuf);
 

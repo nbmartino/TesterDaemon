@@ -39,7 +39,7 @@ int extract_kv_pair(const char *source, const char *regexString, char *ret_str, 
 
       char cursorCopy[strlen(cursor) + 1];
       strcpy(cursorCopy, cursor);
-
+      log_debug("\ncursorCopy: %s\n",cursorCopy);
       cursorCopy[groupArray[g].rm_eo] = 0;
       log_debug("Match %u, Group %u: [%2u-%2u]: %s\n",
                 m, g, groupArray[g].rm_so, groupArray[g].rm_eo,
@@ -47,7 +47,7 @@ int extract_kv_pair(const char *source, const char *regexString, char *ret_str, 
       /* copy KV token */
       if ((m == match_num) && (g == group_num))
       {
-        strcpy(ret_str, cursorCopy + groupArray[g].rm_so);
+        strcpy(ret_str, cursorCopy);
       }
       if ((multiBuf != NULL) && (g == 0))
       {
@@ -57,7 +57,7 @@ int extract_kv_pair(const char *source, const char *regexString, char *ret_str, 
           strcat(multiBuf, PARAM_SEPERATOR);
         }
         /* consider using strdup?? */
-        strcat(multiBuf, cursorCopy + groupArray[g].rm_so);
+        strcat(multiBuf, cursorCopy);
       }
     }
     cursor += offset;

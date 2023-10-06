@@ -21,20 +21,18 @@ int main(int argc, char *argv[])
 
     /* Tests */
 
+goto scribe;
     /* ACCSLEVEL */
-    //retVal = ProcessMessage("MID:1 CMD:ACCSLEVEL LEVEL:OPERATOR\n", replyMsg);
-    //printf("After invoking command, reply string: %s\n", replyMsg);
+    retVal = ProcessMessage("MID:1 CMD:ACCSLEVEL LEVEL:OPERATOR\n", replyMsg);
+    printf("After invoking command, reply string: %s\n", replyMsg);
 
     /* ACCSLEVEL_Q */
-    //retVal = ProcessMessage("MID:1 CMD:ACCSLEVEL?\n", replyMsg);
-    //printf("After invoking command, reply string: %s\n", replyMsg);
+    retVal = ProcessMessage("MID:1 CMD:ACCSLEVEL?\n", replyMsg);
+    printf("After invoking command, reply string: %s\n", replyMsg);
 
     /* PRGN */
     retVal = ProcessMessage("MID:1 CMD:PRGN PATH:/home/src/TP23976 NAME:DCYTTT34.dll\n", replyMsg);
     printf("After invoking command, reply string: %s\n", replyMsg);
-
-return 0;
-   
 
     /* PRGN_Q */
     retVal = ProcessMessage("MID:1 CMD:PRGN?\n", replyMsg);
@@ -123,11 +121,11 @@ return 0;
     /* EOL */
     retVal = ProcessMessage("MID:1 CMD:EOL\n", replyMsg);
     printf("After invoking command, reply string: %s\n", replyMsg);
-
+scribe:
     /* SCRIBE */
     retVal = ProcessMessage("MID:1 CMD:SCRIBE SCRIBE:\"GM28912-02-1A EC\"\n", replyMsg);
     printf("After invoking command, reply string: %s\n", replyMsg);
-
+return 0;
     /* SCRIBE_Q */
     retVal = ProcessMessage("MID:1 CMD:SCRIBE?\n", replyMsg);
     printf("After invoking command, reply string: %s\n", replyMsg);
