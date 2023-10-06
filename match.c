@@ -12,11 +12,11 @@ int extract_kv_pair(const char *source, const char *regexString, char *ret_str, 
   unsigned int m;
   char *cursor;
 
-  debug_log("\nsource: %s\n", source);
+  log_debug("\nsource: %s\n", source);
 
   if (regcomp(&regexCompiled, regexString, REG_EXTENDED | REG_ICASE))
   {
-    debug_log("Could not compile regular expression.\n");
+    log_debug("Could not compile regular expression.\n");
     return 1;
   };
 
@@ -41,7 +41,7 @@ int extract_kv_pair(const char *source, const char *regexString, char *ret_str, 
       strcpy(cursorCopy, cursor);
 
       cursorCopy[groupArray[g].rm_eo] = 0;
-      debug_log("Match %u, Group %u: [%2u-%2u]: %s\n",
+      log_debug("Match %u, Group %u: [%2u-%2u]: %s\n",
                 m, g, groupArray[g].rm_so, groupArray[g].rm_eo,
                 cursorCopy + groupArray[g].rm_so);
       /* copy KV token */
@@ -61,7 +61,7 @@ int extract_kv_pair(const char *source, const char *regexString, char *ret_str, 
       }
     }
     cursor += offset;
-    debug_log("cursor: %lld, offset %lld", cursor, offset);
+    log_debug("cursor: %lld, offset %lld", cursor, offset);
   }
 
   regfree(&regexCompiled);

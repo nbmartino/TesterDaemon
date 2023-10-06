@@ -199,13 +199,13 @@ int BecomeDaemonProcess(const char *const lockFileName,
 			
 			if(killResult==0)
 				{
-				debug_log("\n\nERROR\n\nA lock file %s has been detected. It appears it is owned\nby the (active) process with PID %ld.\n\n",lockFileName,lockPID);
+				log_debug("\n\nERROR\n\nA lock file %s has been detected. It appears it is owned\nby the (active) process with PID %ld.\n\n",lockFileName,lockPID);
 				}
 			else
 				{
 				if(errno==ESRCH) /* non-existent process */
 					{
-					debug_log("\n\nERROR\n\nA lock file %s has been detected. It appears it is owned\nby the process with PID %ld, which is now defunct. Delete the lock file\nand try again.\n\n",lockFileName,lockPID);
+					log_debug("\n\nERROR\n\nA lock file %s has been detected. It appears it is owned\nby the process with PID %ld, which is now defunct. Delete the lock file\nand try again.\n\n",lockFileName,lockPID);
 					}
 				else
 					{

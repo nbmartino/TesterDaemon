@@ -16,6 +16,7 @@ Code, Compile, Run and Debug online from anywhere in world.
 #include "globaldefs.h"
 #include "data.h"
 #include "logging.h"
+#include "utility.h"
 
 extern int extract_kv_pair(const char *source, const char *regexString, char *ret_str, int match_num, int group_num, char *multiBuf);
 extern void initCommandRefs();
@@ -24,9 +25,9 @@ extern int findCmdIndex(const char *name);
 
 struct CommandObject *CmdObjPtr = NULL;
 
-const char *mid_pattern = "^MID:[0-9]*[\\s]*";
-const char *cmd_pattern = "[[:space:]]*CMD:[A-Z]*[?]*";
-const char *params_pattern = "[^\"]+\"|[^\"\\s]+:[[:alpha:]/.]*"; //"[:space:]\"[^\"]+\"|[^\"\\s]+\":\"[^\"]+\"|[^\"\\s]+\"[:space:]";
+const char *mid_pattern = REGEX_MID;
+const char *cmd_pattern = REGEX_CMD;
+const char *params_pattern = REGEX_PARAMS; //"[^\"]+\"|[^\"\\s]+:[[:alpha:]/.]*"; //"[:space:]\"[^\"]+\"|[^\"\\s]+\":\"[^\"]+\"|[^\"\\s]+\"[:space:]";
 
 int runPopen(const char *command, char *retBuf, int bufSize)
 {
@@ -52,7 +53,7 @@ int runPopen(const char *command, char *retBuf, int bufSize)
     }
     else
     {
-        debug_log("pOpen failed, command: %s\n", command);
+        log_debug("pOpen failed, command: %s\n", command);
     }
 
     return (int)bytes_read;
@@ -76,18 +77,18 @@ int invokeScript(struct CommandDescriptor *cmdDescPtr)
 
     if (access(TESTERD_PID_PATH, F_OK) != 0)
     {
-        debug_log("PID file does not exist : %s\n", TESTERD_PID_PATH);
+        log_debug("PID file does not exist : %s\n", TESTERD_PID_PATH);
         return -1;
     }
 
     if (runPopen("cat /var/run/testerd.pid", strPID, SM_BUF_LEN) == -1)
     {
-        debug_log("cannot read /var/log/testerd.pid\n");
+        log_debug("cannot read /var/log/testerd.pid\n");
         return -1;
     }
     else
     {
-        debug_log("tester.pid path : %s\n", strPID);
+        log_debug("tester.pid path : %s\n", strPID);
     }
  */
 
@@ -118,7 +119,7 @@ int invokeScript(struct CommandDescriptor *cmdDescPtr)
         strcpy(strLocalCmd, CmdObjPtr->strCMD);
     }
 
-    debug_log("\nscript path: %s, command: %s\n", script_path, strLocalCmd);
+    log_debug("\nscript path: %s, command: %s\n", script_path, strLocalCmd);
 
     // strcat(script_path, strLocalCmd);
     // strcat(script_path, " ");
@@ -129,7 +130,7 @@ int invokeScript(struct CommandDescriptor *cmdDescPtr)
     /* params - concatenate param tokens separated by [tab] character
     for (int i = 0; i < cmdDescPtr->paramsCount; i++)
     {
-        debug_log("\nCmdObjPtr->strParamTokens: %s\n", CmdObjPtr->strParamTokens);
+        log_debug("\nCmdObjPtr->strParamTokens: %s\n", CmdObjPtr->strParamTokens);
         strcat(script_path, CmdObjPtr->strParamTokens);
         if ((i + 1) < cmdDescPtr->paramsCount)
         {
@@ -137,22 +138,29 @@ int invokeScript(struct CommandDescriptor *cmdDescPtr)
         }
     }*/
 
+    log_debug("\nstrParamTokens: [%s]\n", CmdObjPtr->strParamTokens);
+
     /* if param separator if present, enclose the string with "" before sending to script */
-    if (strtok(CmdObjPtr->strParamTokens, "\t") != NULL)
+    if (strchr(CmdObjPtr->strParamTokens, '\t') != NULL)
     {
-        char tmpBuf[SM_BUF_LEN] = "";
-        sscanf(tmpBuf, "%s\"%s\"", script_path, CmdObjPtr->strParamTokens);
+        log_debug("\nHas tab seperator\n");
+        char tmpBuf[LG_BUF_LEN] = "";
+
+        sprintf(tmpBuf, "%s\"%s\"", script_path, CmdObjPtr->strParamTokens);
+        strcpy(script_path, trim(tmpBuf));
     }
-    else /* jusr append the params */
+    else /* just append the params */
     {
+        log_debug("\nNo tab seperator\n");
         strcat(script_path, CmdObjPtr->strParamTokens);
     }
+    // 
 
-    debug_log("\nscript path: %s\n", script_path);
+    log_debug("\nscript path: %s\n", script_path);
 
     bytesRead = runPopen(script_path, CmdObjPtr->strReplyMsg, SM_BUF_LEN);
 
-    debug_log("\nbytesRead: %d\n", bytesRead);
+    log_debug("\nbytesRead: %d\n", bytesRead);
 
     /*  pp = popen(script_path, "r");
 
@@ -178,13 +186,13 @@ int copyValueFromToken(const char *strSrc, char *rcvBuf)
 {
 
     char tmp[MSG_TOKEN_LEN];
-    debug_log("strSrc: %s\n", strSrc);
+    log_debug("strSrc: %s\n", strSrc);
     char *segment = strtok(strSrc, ":");
 
     while (segment != NULL)
     {
         strcpy(rcvBuf, segment);
-        debug_log("rcvBuf: %s\n", segment);
+        log_debug("rcvBuf: %s\n", segment);
         segment = strtok(NULL, ":");
     }
 
@@ -194,6 +202,13 @@ int copyValueFromToken(const char *strSrc, char *rcvBuf)
 void initCmdObjPtr()
 {
     CmdObjPtr = (struct CommandObject *)malloc(sizeof(struct CommandObject));
+    if (CmdObjPtr)
+    {
+        strcpy(CmdObjPtr->strMID, "");
+        strcpy(CmdObjPtr->strCMD, "");
+        strcpy(CmdObjPtr->strReplyMsg, "");
+        strcpy(CmdObjPtr->strParamTokens, "");
+    }
 }
 
 void cleanUpCmdInstPtr()
@@ -201,15 +216,16 @@ void cleanUpCmdInstPtr()
     if (CmdObjPtr == NULL)
         return;
 
-    if (CmdObjPtr->strParamTokens != NULL)
-        free(CmdObjPtr->strParamTokens);
+    // if (CmdObjPtr->strParamTokens != NULL)
+    //     free(CmdObjPtr->strParamTokens);
 
     free(CmdObjPtr);
 }
 
 void initParamTokens(int paramsCnt)
 {
-    debug_log("paramsCnt: %d", paramsCnt);
+    /*
+    log_debug("paramsCnt: %d", paramsCnt);
     if (paramsCnt > 0)
     {
         CmdObjPtr->strParamTokens = malloc(paramsCnt * (MSG_TOKEN_LEN + sizeof(char *)));
@@ -218,15 +234,15 @@ void initParamTokens(int paramsCnt)
     else
     {
         CmdObjPtr->strParamTokens = NULL;
-    }
+    }*/
 }
 
 void cleanUpParamTokens()
 {
-    if (CmdObjPtr->strParamTokens != NULL)
-    {
-        free(CmdObjPtr->strParamTokens);
-    }
+    /*  if (CmdObjPtr->strParamTokens != NULL)
+     {
+         free(CmdObjPtr->strParamTokens);
+     } */
 }
 
 int ProcessMessage(const char *message, char *replyBuf)
@@ -242,12 +258,12 @@ int ProcessMessage(const char *message, char *replyBuf)
     /* 1. extract MID */
     offset += extract_kv_pair(message + offset, mid_pattern, strToken, 0, 0, NULL);
     copyValueFromToken(strToken, CmdObjPtr->strMID);
-    debug_log("str_MID: %s, offset: %d\n", CmdObjPtr->strMID, offset);
+    log_debug("str_MID: %s, offset: %d\n", CmdObjPtr->strMID, offset);
 
     /* 2. extract CMD */
     offset += extract_kv_pair(message + offset, cmd_pattern, strToken, 0, 0, NULL);
     copyValueFromToken(strToken, CmdObjPtr->strCMD);
-    debug_log("str_CMD: %s\n", CmdObjPtr->strCMD);
+    log_debug("str_CMD: %s\n", CmdObjPtr->strCMD);
 
     /* 2.1 check if single instance of CMD only, otherwise raise error */
 
@@ -256,56 +272,59 @@ int ProcessMessage(const char *message, char *replyBuf)
          -> iterate CMD params pat to see if a pattern matches
      4. if valid params, parse key-value pairs
      */
-    char multiBuf[LG_BUF_LEN] = "";
-    extract_kv_pair(message + offset, "(\"[^\"\\s\\/\\]*\"|[^\\/\\\"\\s:]+):(\"[^\":]+\"|[A-Za-z0-9\\/.]*)", strCommon, 0, 0, multiBuf);
 
-    debug_log("\nmultiBuf: %s\n", multiBuf);
+   
+    char multiBuf[LG_BUF_LEN] = "";
+    extract_kv_pair(message + offset, params_pattern, strCommon, 0, 0, multiBuf);
+
+    
 
     /* copy tokens to strTokens */
-    strcpy(CmdObjPtr->strParamTokens, multiBuf);
-    // debug_log(" param token: %s\n", strCommon);
+    strcpy(CmdObjPtr->strParamTokens, trim(multiBuf));
+
+    log_debug("\nmultiBuf: [%s]\n", multiBuf);
 
     cmdDescIdx = findCmdIndex(CmdObjPtr->strCMD);
 
     int paramsCnt = cmdDescList[cmdDescIdx].paramsCount;
 
     //   Initialize params tokens array first
-    initParamTokens(paramsCnt);
-    if ( 0 /*paramsCnt == 0*/)
+    // initParamTokens(paramsCnt);
+    /*  if ( 0 /*paramsCnt == 0)
+     {
+         if (CmdObjPtr->strParamTokens != NULL)
+         {
+             free(CmdObjPtr->strParamTokens);
+             CmdObjPtr->strParamTokens = NULL; // MEMORY LEAK!!
+         }
+     }
+     else
+     { */
+    // sprintf(multiBuf, "\"%s\"", multiBuf);
+    // strcpy(CmdObjPtr->strParamTokens, multiBuf, strlen(multiBuf));
+    // strcpy(CmdObjPtr->strParamTokens, multiBuf);
+    /*
+strcat(CmdObjPtr->strParamTokens, "\"");
+for (int i = 0; i < paramsCnt; i++)
+{
+    strcat(CmdObjPtr->strParamTokens, strCommon);
+    if ((i + 1) < paramsCnt)
     {
-        if (CmdObjPtr->strParamTokens != NULL)
-        {
-            free(CmdObjPtr->strParamTokens);
-            CmdObjPtr->strParamTokens = NULL; // MEMORY LEAK!!
-        }
+        strcat(CmdObjPtr->strParamTokens, "\t");
     }
-    else
-    {
-        // sprintf(multiBuf, "\"%s\"", multiBuf);
-        //strcpy(CmdObjPtr->strParamTokens, multiBuf, strlen(multiBuf));
-        //strcpy(CmdObjPtr->strParamTokens, multiBuf);
-        /*
-    strcat(CmdObjPtr->strParamTokens, "\"");
-    for (int i = 0; i < paramsCnt; i++)
-    {
-        strcat(CmdObjPtr->strParamTokens, strCommon);
-        if ((i + 1) < paramsCnt)
-        {
-            strcat(CmdObjPtr->strParamTokens, "\t");
-        }
-    }
-    strcat(CmdObjPtr->strParamTokens, "\"");
-    */
-    }
+}
+strcat(CmdObjPtr->strParamTokens, "\"");
+*/
+    //}
 
     // extract_kv_pair("\"paTH\":/usr/local/pgm.fl nAmE:\"Prog Name\" LOT:GAO12345.1 DEVICE:0HIST001\n", "(\"[^\"\\s\\/\\]*\"|[^\\/\\\"\\s:]+):(\"[^\":]+\"|[A-Za-z0-9\\/.]*)", strCommon, 0, 0);
 
-    // debug_log("str_common: %s\n", strCommon);
+    // log_debug("str_common: %s\n", strCommon);
 
     // extract_kv_pair(" LOT:GAO12345.1 DEVICE:0HIST001", "(\"[^\"\\s\\/\\]*\"|[^\\/\\\"]*)?:(\"[^\"]*\"|[^\"]*)?", str_common, 0);
     // extract_kv_pair("\"paTH\":/usr/local/pgm.fl LOT:GAO12345.1    deviCE:0HIST001", "(\\?(\\?=\".*\")(\"[A-Za-z\\s]*\")|([A-Za-z]*)):(\"[^\"]*\"|[A-Za-z0-9\\/.]*)", strCommon, 0, 0);
 
-    // debug_log("str_common: %s\n", strCommon);
+    // log_debug("str_common: %s\n", strCommon);
 
     /*
      5. invoke CMD script, pass key value pairs
@@ -319,7 +338,7 @@ int ProcessMessage(const char *message, char *replyBuf)
     }
     else
     {
-        debug_log("\nCommand index: %d\n", cmdDescIdx);
+        log_debug("\nCommand index: %d\n", cmdDescIdx);
     }
 
     /*

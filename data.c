@@ -10,7 +10,7 @@ struct CommandDescriptor *cmdDescPtr;
 
 void initializeCmdDesc(struct CommandDescriptor *inputCmd, int inputIndex, char *inputName, int inputParamsCount) /*, char **params_regex_in)*/
 {
-    debug_log("\ninputIndex:%d inputName: %s\n", inputIndex, inputName);
+    log_debug("\ninputIndex:%d inputName: %s\n", inputIndex, inputName);
     inputCmd->index = inputIndex;
     strcpy(inputCmd->name, inputName);
     inputCmd->paramsCount = inputParamsCount;
@@ -30,24 +30,24 @@ void initializeCmdDesc(struct CommandDescriptor *inputCmd, int inputIndex, char 
 
 int findCmdIndex(const char *name)
 {
-    debug_log("\n command name: %s", name);
+    log_debug("\n command name: %s", name);
     for (int ctr = 0; ctr < gCmdTotalNum; ctr++)
     {
-        /*  debug_log("\nindex: %d, command name: %s", ctr, cmdDescList[ctr].name); */
+        /*  log_debug("\nindex: %d, command name: %s", ctr, cmdDescList[ctr].name); */
         if (strcasecmp(cmdDescList[ctr].name, name) == 0)
         {
-            debug_log("\nfound! index: %d, command name: %s", ctr, cmdDescList[ctr].name);
+            log_debug("\nfound! index: %d, command name: %s", ctr, cmdDescList[ctr].name);
             return ctr;
         }
 
     }
-    debug_log("\nindex not found, command name: %s\n", name);
+    log_debug("\nindex not found, command name: %s\n", name);
     return -1;
 }
 
 /* int getParamsCnt(const char *cmdName)
 {
-    debug_log("\ncmdName: %s\n");
+    log_debug("\ncmdName: %s\n");
     int idx = findCmdIndex(cmdName);
     if (idx != -1)
     {

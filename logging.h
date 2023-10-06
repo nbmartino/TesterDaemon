@@ -3,7 +3,7 @@
 #define DEBUG_MODE
 
 #ifdef DEBUG_MODE
-#define debug_log(...) ( printf("[%s] ", __func__), printf(__VA_ARGS__) )
+#define log_debug(...) ( printf("[%s] ", __func__), printf(__VA_ARGS__) )
 #else
-#define debug_log(...)
+#define log_debug(...)
 #endif

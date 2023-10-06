@@ -13,7 +13,7 @@ struct CommandObject
     char strMID[MSG_TOKEN_LEN];
     char strCMD[MSG_TOKEN_LEN];
     char strReplyMsg[SM_BUF_LEN];
-    char **strParamTokens;
+    char strParamTokens[LG_BUF_LEN];
 
 };
 
