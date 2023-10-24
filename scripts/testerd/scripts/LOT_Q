@@ -1,0 +1,21 @@
+#!/bin/ksh
+
+######################################################
+#Written By: Neil Martino
+#Purpose:
+#October 5, 2023
+######################################################
+
+## __REAL_SCRIPTDIR - path of the script (real path, maybe a link)
+##
+__REAL_SCRIPTDIR=$( cd -P -- "$(dirname -- "$(command -v -- "$0")")" && pwd -P) 
+
+source $__REAL_SCRIPTDIR/globals.ksh
+
+TIMESTAMP=$(date +%d-%b-%H_%M_%S)
+
+# print to log file timestamp, script name, passed params
+echo $TIMESTAMP ${0##*/} Params: $1 >> $LOG_FILE_PATH_NAME
+
+RET_MSG="ANSWER:SUCCESS LOT:GM89463.1A"
+echo script_file_name: ${0##*/} received_params: $1 response: $RET_MSG
