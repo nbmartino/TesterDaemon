@@ -18,7 +18,7 @@ Code, Compile, Run and Debug online from anywhere in world.
 #include "logging.h"
 #include "utility.h"
 
-extern int extract_kv_pair(const char *source, const char *regexString, char *ret_str, int match_num, int group_num, char *multiBuf);
+extern int extract_kv_pair(const char *source, const char *regexString, char *ret_str, int match_num, int group_num, char *multiBuf, int *hitCount);
 extern void initCommandRefs();
 extern int findCmdIndex(const char *name);
 // extern int getParamsCnt(const char *cmdName);
@@ -143,17 +143,15 @@ int invokeScript(struct CommandDescriptor *cmdDescPtr)
     /* if param separator if present, enclose the string with "" before sending to script */
     if (strchr(CmdObjPtr->strParamTokens, '\t') != NULL)
     {
-        log_debug("\nHas tab seperator\n");
-        char tmpBuf[LG_BUF_LEN] = "";
-
-        sprintf(tmpBuf, "%s\"%s\"", script_path, CmdObjPtr->strParamTokens);
+        log_debug("\nHas tab separator\n");
+        sprintf(script_path, "%s\"%s\"", script_path, CmdObjPtr->strParamTokens);
     }
     else /* just append the params */
     {
-        log_debug("\nNo tab seperator\n");
+        log_debug("\nNo tab separator\n");
         strcat(script_path, CmdObjPtr->strParamTokens);
     }
-    // 
+    //
 
     log_debug("\nscript path: %s\n", script_path);
 
@@ -244,27 +242,47 @@ void cleanUpParamTokens()
      } */
 }
 
-int ProcessMessage(const char *message, char *replyBuf)
+int ProcessMessage(char *message)
 {
-    int retVal = -1, offset = 0, cmdDescIdx = -1;
-
+    int retVal = -1, cmdDescIdx = -1, hitCount;
+    int offset = 0, offsetMID = 0, offsetCMD = 0;
     char strCommon[MSG_TOKEN_LEN];
-
     char strToken[MSG_TOKEN_LEN];
+
+    log_debug("\n===============================================\n");
 
     initCmdObjPtr();
 
     /* 1. extract MID */
-    offset += extract_kv_pair(message + offset, mid_pattern, strToken, 0, 0, NULL);
+    offset += extract_kv_pair(message + offset, mid_pattern, strToken, 0, 0, NULL, &hitCount);
+    offsetMID = offset;
     copyValueFromToken(strToken, CmdObjPtr->strMID);
     log_debug("str_MID: %s, offset: %d\n", CmdObjPtr->strMID, offset);
 
     /* 2. extract CMD */
-    offset += extract_kv_pair(message + offset, cmd_pattern, strToken, 0, 0, NULL);
+    offset += extract_kv_pair(message + offset, cmd_pattern, strToken, 0, 0, NULL, &hitCount);
+    offsetCMD = offset;
     copyValueFromToken(strToken, CmdObjPtr->strCMD);
     log_debug("str_CMD: %s\n", CmdObjPtr->strCMD);
 
-    /* 2.1 check if single instance of CMD only, otherwise raise error */
+    /* if there is another command, cut the process short and send error message */
+    if (hitCount > 1)
+    {
+        log_debug("\nerror! multiple commands in one message. retVal== %d\n", retVal);
+        message[offsetCMD + 1] = '\0'; /* end of command name plus 1 == space char */
+        strcat(message, "ERROR:\"Multiple commands in one message.\"");
+        return -1;
+    }
+
+    /* if unknown command, cut the process short and send error message */
+    cmdDescIdx = findCmdIndex(CmdObjPtr->strCMD);
+    if (cmdDescIdx == -1)
+    {
+        log_debug("\nerror! unknown command.\n");
+        message[offsetCMD + 1] = '\0'; /* end of command name plus 1 == space char */
+        strcat(message, "ERROR:\"Unknown command.\"");
+        return -1;
+    }
 
     /*
      3. verify if trailing params are valid accd to CMD params regex
@@ -272,73 +290,24 @@ int ProcessMessage(const char *message, char *replyBuf)
      4. if valid params, parse key-value pairs
      */
 
-   
-    char multiBuf[LG_BUF_LEN]={0};
-    extract_kv_pair(message + offset, params_pattern, strCommon, 0, 0, multiBuf);
+    char multiBuf[LG_BUF_LEN] = {0};
 
-    
+    extract_kv_pair(message + offset, params_pattern, strCommon, 0, 0, multiBuf, &hitCount);
 
     /* copy tokens to strTokens */
-    strcpy(CmdObjPtr->strParamTokens, multiBuf);
+    strcpy(CmdObjPtr->strParamTokens, trim(multiBuf));
 
     log_debug("\nmultiBuf: [%s]\n", multiBuf);
 
-    cmdDescIdx = findCmdIndex(CmdObjPtr->strCMD);
-
-    int paramsCnt = cmdDescList[cmdDescIdx].paramsCount;
-
-    //   Initialize params tokens array first
-    // initParamTokens(paramsCnt);
-    /*  if ( 0 /*paramsCnt == 0)
-     {
-         if (CmdObjPtr->strParamTokens != NULL)
-         {
-             free(CmdObjPtr->strParamTokens);
-             CmdObjPtr->strParamTokens = NULL; // MEMORY LEAK!!
-         }
-     }
-     else
-     { */
-    // sprintf(multiBuf, "\"%s\"", multiBuf);
-    // strcpy(CmdObjPtr->strParamTokens, multiBuf, strlen(multiBuf));
-    // strcpy(CmdObjPtr->strParamTokens, multiBuf);
-    /*
-strcat(CmdObjPtr->strParamTokens, "\"");
-for (int i = 0; i < paramsCnt; i++)
-{
-    strcat(CmdObjPtr->strParamTokens, strCommon);
-    if ((i + 1) < paramsCnt)
-    {
-        strcat(CmdObjPtr->strParamTokens, "\t");
-    }
-}
-strcat(CmdObjPtr->strParamTokens, "\"");
-*/
-    //}
-
-    // extract_kv_pair("\"paTH\":/usr/local/pgm.fl nAmE:\"Prog Name\" LOT:GAO12345.1 DEVICE:0HIST001\n", "(\"[^\"\\s\\/\\]*\"|[^\\/\\\"\\s:]+):(\"[^\":]+\"|[A-Za-z0-9\\/.]*)", strCommon, 0, 0);
-
-    // log_debug("str_common: %s\n", strCommon);
-
-    // extract_kv_pair(" LOT:GAO12345.1 DEVICE:0HIST001", "(\"[^\"\\s\\/\\]*\"|[^\\/\\\"]*)?:(\"[^\"]*\"|[^\"]*)?", str_common, 0);
-    // extract_kv_pair("\"paTH\":/usr/local/pgm.fl LOT:GAO12345.1    deviCE:0HIST001", "(\\?(\\?=\".*\")(\"[A-Za-z\\s]*\")|([A-Za-z]*)):(\"[^\"]*\"|[A-Za-z0-9\\/.]*)", strCommon, 0, 0);
-
-    // log_debug("str_common: %s\n", strCommon);
+    // int paramsCnt = cmdDescList[cmdDescIdx].paramsCount;
 
     /*
      5. invoke CMD script, pass key value pairs
         parse command name from kv pair
     */
 
-    if (cmdDescIdx != -1)
-    {
-        retVal = invokeScript(&cmdDescList[cmdDescIdx]);
-        // strcpy(CmdInstPtr->strReplyMsg, strToken);
-    }
-    else
-    {
-        log_debug("\nCommand index: %d\n", cmdDescIdx);
-    }
+    retVal = invokeScript(&cmdDescList[cmdDescIdx]);
+    // strcpy(CmdInstPtr->strReplyMsg, strToken);
 
     /*
       building reply message string
@@ -346,7 +315,10 @@ strcat(CmdObjPtr->strParamTokens, "\"");
     */
 
     /* build reply string */
-    sprintf(replyBuf, "MID:%s CMD:%s %s", CmdObjPtr->strMID, CmdObjPtr->strCMD, CmdObjPtr->strReplyMsg);
+    /* truncate orig buffer upto end on command KV token and a space */
+    message[offsetCMD + 1] = '\0';
+    strcat(message, CmdObjPtr->strReplyMsg);
+    //sprintf(replyBuf, "MID:%s CMD:%s %s", CmdObjPtr->strMID, CmdObjPtr->strCMD, CmdObjPtr->strReplyMsg);
     // cleanUpParamTokens();
     cleanUpCmdInstPtr();
     /* return reply string size */

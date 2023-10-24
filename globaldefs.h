@@ -8,8 +8,10 @@
 
 #define TESTERD_PID_PATH "/var/run/testerd.pid"
 #define PROD_HOME_DIR "/usr/prod/testerd"
-#define PARAM_SEPERATOR "\t"
+#define PARAM_SEPARATOR "\t"
 
 #define REGEX_MID "^MID:[0-9]*[\\s]*"
 #define REGEX_CMD "[[:space:]]*CMD:[A-Z]*[?]*"
-#define REGEX_PARAMS "(\"[^\"\\s\\/\\]*\"|[^\\/\\\"\\s:]+):(\"[^\":]+\"|[A-Za-z0-9\\/.]*)"
+//#define REGEX_PARAMS "(\"[^\"\\s\\/\\]*\"|[^\\/\\\"\\s:]+):(\"[^\":]+\"|[A-Za-z0-9\\/.]*)"
+
+#define REGEX_PARAMS "(\"[^\"\\s\\/\\]*\"|[A-Za-z0-9\\/.]*):(\"[^\":]+\"|[A-Za-z0-9\\/.,_]*)"

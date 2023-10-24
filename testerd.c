@@ -20,29 +20,25 @@
 
 #include "testerd.h"
 
-
-
-
 /*************************************************************************/
 
 /* global variables and constants */
 
-volatile sig_atomic_t	gGracefulShutdown=0;
-volatile sig_atomic_t	gCaughtHupSignal=0;
+volatile sig_atomic_t gGracefulShutdown = 0;
+volatile sig_atomic_t gCaughtHupSignal = 0;
 
-int							gLockFileDesc=-1;
-int							gMasterSocket=-1;
+int gLockFileDesc = -1;
+int gMasterSocket = -1;
 
-FILE* gLogFP;
+FILE *gLogFP;
 
 /* the 'well-known' port on which our server will be listening */
 
-const int					gTesterDPort=30153;
+const int gTesterDPort = 30153;
 
 /* the path to our lock file */
 
-const char *const			gLockFilePath="/var/run/testerd.pid";
-
+const char *const gLockFilePath = "/var/run/testerd.pid";
 
 /*************************************************************************/
 
@@ -55,9 +51,9 @@ const char *const			gLockFilePath="/var/run/testerd.pid";
 
 int main(void /*int argc,char *argv[]*/)
 {
-	int						result;
-	pid_t					daemonPID;
-	
+	int result;
+	pid_t daemonPID;
+
 	/*************************************************************/
 	/* perhaps at this stage you would read a configuration file */
 	/*************************************************************/
@@ -65,51 +61,51 @@ int main(void /*int argc,char *argv[]*/)
 	/* the first task is to put ourself into the background (i.e
 		become a daemon. */
 
-	if((result=BecomeDaemonProcess(gLockFilePath,"testerd",
-											 LOG_DEBUG,&gLockFileDesc,&daemonPID))<0)
-		{
+	if ((result = BecomeDaemonProcess(gLockFilePath, "testerd",
+									  LOG_DEBUG, &gLockFileDesc, &daemonPID)) < 0)
+	{
 		perror("Failed to become daemon process");
 		exit(result);
-		}
+	}
 
 	/* set up signal processing */
 
-	if((result=ConfigureSignalHandlers())<0)
-		{
-		syslog(LOG_LOCAL0|LOG_INFO,"ConfigureSignalHandlers failed, errno=%d",errno);
+	if ((result = ConfigureSignalHandlers()) < 0)
+	{
+		syslog(LOG_LOCAL0 | LOG_INFO, "ConfigureSignalHandlers failed, errno=%d", errno);
 		unlink("/var/log/testerd.pid");
 		exit(result);
-		}
+	}
 
 	/* now we must create a socket and bind it to a port */
 
-	if((result=BindPassiveSocket(INADDR_ANY,gTesterDPort,&gMasterSocket))<0)
-		{
-		syslog(LOG_LOCAL0|LOG_INFO,"BindPassiveSocket failed, errno=%d",errno);
+	if ((result = BindPassiveSocket(INADDR_ANY, gTesterDPort, &gMasterSocket)) < 0)
+	{
+		syslog(LOG_LOCAL0 | LOG_INFO, "BindPassiveSocket failed, errno=%d", errno);
 		unlink("/var/log/testerd.pid");
 		exit(result);
-		}
+	}
 
 	/* now enter an infinite loop handling connections */
 
 	do
+	{
+		if (AcceptConnections(gMasterSocket) < 0)
 		{
-		if(AcceptConnections(gMasterSocket)<0)
-			{
-			syslog(LOG_LOCAL0|LOG_INFO,"AcceptConnections failed, errno=%d",errno);
+			syslog(LOG_LOCAL0 | LOG_INFO, "AcceptConnections failed, errno=%d", errno);
 			unlink("/var/log/testerd.pid");
 			exit(result);
-			}
-		
+		}
+
 		/* the next conditional will be true if we caught signal SIGUSR1 */
 
-		if((gGracefulShutdown==1)&&(gCaughtHupSignal==0))
+		if ((gGracefulShutdown == 1) && (gCaughtHupSignal == 0))
 			break;
 
 		/* if we caught SIGHUP, then start handling connections again */
 
-		gGracefulShutdown=gCaughtHupSignal=0;
-		}while(1);
+		gGracefulShutdown = gCaughtHupSignal = 0;
+	} while (1);
 
 	TidyUp(); /* close the socket and kill the lock file */
 
@@ -140,22 +136,22 @@ int main(void /*int argc,char *argv[]*/)
 	Returns:
 
 	status code indicating success - 0 = success
-	
+
 ***************************************************************************/
 /**************************************************************************/
 
 int BecomeDaemonProcess(const char *const lockFileName,
-								const char *const logPrefix,
-								const int logLevel,
-								int *const lockFileDesc,
-								pid_t *const thisPID)
+						const char *const logPrefix,
+						const int logLevel,
+						int *const lockFileDesc,
+						pid_t *const thisPID)
 {
-	int						curPID,stdioFD,lockResult,killResult,lockFD,i,
-								numFiles;
-	char						pidBuf[17],*lfs,pidStr[7];
-	FILE						*lfp;
-	unsigned long			lockPID;
-	struct flock			exclusiveLock;
+	int curPID, stdioFD, lockResult, killResult, lockFD, i,
+		numFiles;
+	char pidBuf[17], *lfs, pidStr[7];
+	FILE *lfp;
+	unsigned long lockPID;
+	struct flock exclusiveLock;
 
 	/* set our current working directory to root to avoid tying up
 		any directories. In a real server, we might later change to
@@ -163,173 +159,173 @@ int BecomeDaemonProcess(const char *const lockFileName,
 		(especially if we are writing something that serves files */
 
 	chdir("/");
-	
+
 	/* try to grab the lock file */
 
-	lockFD=open(lockFileName,O_RDWR|O_CREAT|O_EXCL,0644);
-	
-	if(lockFD==-1)
-		{
+	lockFD = open(lockFileName, O_RDWR | O_CREAT | O_EXCL, 0644);
+
+	if (lockFD == -1)
+	{
 		/* Perhaps the lock file already exists. Try to open it */
 
-		lfp=fopen(lockFileName,"r");
+		lfp = fopen(lockFileName, "r");
 
-		if(lfp==0) /* Game over. Bail out */
-			{
+		if (lfp == 0) /* Game over. Bail out */
+		{
 			perror("Can't get lockfile");
 			return -1;
-			}
+		}
 
 		/* We opened the lockfile. Our lockfiles store the daemon PID in them.
 			Find out what that PID is */
 
-		lfs=fgets(pidBuf,16,lfp);
+		lfs = fgets(pidBuf, 16, lfp);
 
-		if(lfs!=0)
-			{
-			if(pidBuf[strlen(pidBuf)-1]=='\n') /* strip linefeed */
-				pidBuf[strlen(pidBuf)-1]=0;
-			
-			lockPID=strtoul(pidBuf,(char**)0,10);
-			
+		if (lfs != 0)
+		{
+			if (pidBuf[strlen(pidBuf) - 1] == '\n') /* strip linefeed */
+				pidBuf[strlen(pidBuf) - 1] = 0;
+
+			lockPID = strtoul(pidBuf, (char **)0, 10);
+
 			/* see if that process is running. Signal 0 in kill(2) doesn't
 				send a signal, but still performs error checking */
-			
-			killResult=kill(lockPID,0);
-			
-			if(killResult==0)
-				{
-				log_debug("\n\nERROR\n\nA lock file %s has been detected. It appears it is owned\nby the (active) process with PID %ld.\n\n",lockFileName,lockPID);
-				}
+
+			killResult = kill(lockPID, 0);
+
+			if (killResult == 0)
+			{
+				log_debug("\n\nERROR\n\nA lock file %s has been detected. It appears it is owned\nby the (active) process with PID %ld.\n\n", lockFileName, lockPID);
+			}
 			else
+			{
+				if (errno == ESRCH) /* non-existent process */
 				{
-				if(errno==ESRCH) /* non-existent process */
-					{
-					log_debug("\n\nERROR\n\nA lock file %s has been detected. It appears it is owned\nby the process with PID %ld, which is now defunct. Delete the lock file\nand try again.\n\n",lockFileName,lockPID);
-					}
+					log_debug("\n\nERROR\n\nA lock file %s has been detected. It appears it is owned\nby the process with PID %ld, which is now defunct. Delete the lock file\nand try again.\n\n", lockFileName, lockPID);
+				}
 				else
-					{
+				{
 					perror("Could not acquire exclusive lock on lock file");
-					}
 				}
 			}
+		}
 		else
 			perror("Could not read lock file");
 
 		fclose(lfp);
-		
+
 		return -1;
-		}
+	}
 
 	/* we have got this far so we have acquired access to the lock file.
 		Set a lock on it */
 
-	exclusiveLock.l_type=F_WRLCK; /* exclusive write lock */
-	exclusiveLock.l_whence=SEEK_SET; /* use start and len */
-	exclusiveLock.l_len=exclusiveLock.l_start=0; /* whole file */
-	exclusiveLock.l_pid=0; /* don't care about this */
-	lockResult=fcntl(lockFD,F_SETLK,&exclusiveLock);
-	
-	if(lockResult<0) /* can't get a lock */
-		{
+	exclusiveLock.l_type = F_WRLCK;					 /* exclusive write lock */
+	exclusiveLock.l_whence = SEEK_SET;				 /* use start and len */
+	exclusiveLock.l_len = exclusiveLock.l_start = 0; /* whole file */
+	exclusiveLock.l_pid = 0;						 /* don't care about this */
+	lockResult = fcntl(lockFD, F_SETLK, &exclusiveLock);
+
+	if (lockResult < 0) /* can't get a lock */
+	{
 		close(lockFD);
 		perror("Can't get lockfile");
 		return -1;
-		}
+	}
 
 	/* now we move ourselves into the background and become a daemon.
 	 Remember that fork() inherits open file descriptors among others so
 	 our lock file is still valid */
 
-	curPID=fork();
+	curPID = fork();
 
-	switch(curPID)
-		{
-		case 0: /* we are the child process */
-		  break;
+	switch (curPID)
+	{
+	case 0: /* we are the child process */
+		break;
 
-		case -1: /* error - bail out (fork failing is very bad) */
-		  fprintf(stderr,"Error: initial fork failed: %s\n",
-					 strerror(errno));
-		  return -1;
-		  break;
+	case -1: /* error - bail out (fork failing is very bad) */
+		fprintf(stderr, "Error: initial fork failed: %s\n",
+				strerror(errno));
+		return -1;
+		break;
 
-		default: /* we are the parent, so exit */
-		  exit(0);
-		  break;
-		}
+	default: /* we are the parent, so exit */
+		exit(0);
+		break;
+	}
 
 	/* make the process a session and process group leader. This simplifies
 		job control if we are spawning child servers, and starts work on
 		detaching us from a controlling TTY	*/
 
-	if(setsid()<0)
+	if (setsid() < 0)
 		return -1;
-	
+
 	/* ignore SIGHUP as this signal is sent when session leader terminates */
 
-	signal(SIGHUP,SIG_IGN);
+	signal(SIGHUP, SIG_IGN);
 
 	/* fork again to let session group leader exit. Now we can't
 		have a controlling TTY. */
 
-	curPID=fork();
+	curPID = fork();
 
-	switch(curPID) /* return codes as before */
-		{
-		case 0:
-		  break;
+	switch (curPID) /* return codes as before */
+	{
+	case 0:
+		break;
 
-		case -1:
-		  return -1;
-		  break;
+	case -1:
+		return -1;
+		break;
 
-		default:
-		  exit(0);
-		  break;
-		}
+	default:
+		exit(0);
+		break;
+	}
 
 	/* log PID to lock file */
 
 	/* truncate just in case file already existed */
-	
-	if(ftruncate(lockFD,0)<0)
+
+	if (ftruncate(lockFD, 0) < 0)
 		return -1;
 
 	/* store our PID. Then we can kill the daemon with
 		kill `cat <lockfile>` where <lockfile> is the path to our
 		lockfile */
-	
-	sprintf(pidStr,"%d\n",(int)getpid());
-	
-	write(lockFD,pidStr,strlen(pidStr));
 
-	*lockFileDesc=lockFD; /* return lock file descriptor to caller */
-	
+	sprintf(pidStr, "%d\n", (int)getpid());
+
+	write(lockFD, pidStr, strlen(pidStr));
+
+	*lockFileDesc = lockFD; /* return lock file descriptor to caller */
+
 	/* close open file descriptors */
 
-	numFiles=sysconf(_SC_OPEN_MAX); /* how many file descriptors? */
-	
-	if(numFiles<0) /* sysconf has returned an indeterminate value */
-		numFiles=OPEN_MAX_GUESS; /* from Stevens '93 */
-		
-	for(i=numFiles-1;i>=0;--i) /* close all open files except lock */
-		{
-		if(i!=lockFD) /* don't close the lock file! */
+	numFiles = sysconf(_SC_OPEN_MAX); /* how many file descriptors? */
+
+	if (numFiles < 0)			   /* sysconf has returned an indeterminate value */
+		numFiles = OPEN_MAX_GUESS; /* from Stevens '93 */
+
+	for (i = numFiles - 1; i >= 0; --i) /* close all open files except lock */
+	{
+		if (i != lockFD) /* don't close the lock file! */
 			close(i);
-		}
-	
+	}
+
 	/* stdin/out/err to /dev/null */
 
 	umask(0); /* set this to whatever is appropriate for you */
 
-	stdioFD=open("/dev/null",O_RDWR); /* fd 0 = stdin */
-	dup(stdioFD); /* fd 1 = stdout */
-	dup(stdioFD); /* fd 2 = stderr */
+	stdioFD = open("/dev/null", O_RDWR); /* fd 0 = stdin */
+	dup(stdioFD);						 /* fd 1 = stdout */
+	dup(stdioFD);						 /* fd 2 = stderr */
 
 	/* open the system log - here we are using the LOCAL0 facility */
 
-	openlog(logPrefix,LOG_PID|LOG_CONS|LOG_NDELAY|LOG_NOWAIT,LOG_LOCAL0);
+	openlog(logPrefix, LOG_PID | LOG_CONS | LOG_NDELAY | LOG_NOWAIT, LOG_LOCAL0);
 
 	(void)setlogmask(LOG_UPTO(logLevel)); /* set logging level */
 
@@ -361,7 +357,7 @@ int BecomeDaemonProcess(const char *const lockFileName,
 
 int ConfigureSignalHandlers(void)
 {
-	struct sigaction		sighupSA,sigusr1SA,sigtermSA;
+	struct sigaction sighupSA, sigusr1SA, sigtermSA;
 
 	/* ignore several signals because they do not concern us. In a
 		production server, SIGPIPE would have to be handled as this
@@ -371,19 +367,19 @@ int ConfigureSignalHandlers(void)
 		is used to handle asynchronous I/O. SIGCHLD is very important
 		if the server has forked any child processes. */
 
-	signal(SIGUSR2,SIG_IGN);	
-	signal(SIGPIPE,SIG_IGN);
-	signal(SIGALRM,SIG_IGN);
-	signal(SIGTSTP,SIG_IGN);
-	signal(SIGTTIN,SIG_IGN);
-	signal(SIGTTOU,SIG_IGN);
-	signal(SIGURG,SIG_IGN);
-	signal(SIGXCPU,SIG_IGN);
-	signal(SIGXFSZ,SIG_IGN);
-	signal(SIGVTALRM,SIG_IGN);
-	signal(SIGPROF,SIG_IGN);
-	signal(SIGIO,SIG_IGN);
-	signal(SIGCHLD,SIG_IGN);
+	signal(SIGUSR2, SIG_IGN);
+	signal(SIGPIPE, SIG_IGN);
+	signal(SIGALRM, SIG_IGN);
+	signal(SIGTSTP, SIG_IGN);
+	signal(SIGTTIN, SIG_IGN);
+	signal(SIGTTOU, SIG_IGN);
+	signal(SIGURG, SIG_IGN);
+	signal(SIGXCPU, SIG_IGN);
+	signal(SIGXFSZ, SIG_IGN);
+	signal(SIGVTALRM, SIG_IGN);
+	signal(SIGPROF, SIG_IGN);
+	signal(SIGIO, SIG_IGN);
+	signal(SIGCHLD, SIG_IGN);
 
 	/* these signals mainly indicate fault conditions and should be logged.
 		Note we catch SIGCONT, which is used for a type of job control that
@@ -391,52 +387,52 @@ int ConfigureSignalHandlers(void)
 		SIGSTOP since this signal can't be caught or ignored. SIGEMT is not
 		supported under Linux as of kernel v2.4 */
 
-	signal(SIGQUIT,FatalSigHandler);
-	signal(SIGILL,FatalSigHandler);
-	signal(SIGTRAP,FatalSigHandler);
-	signal(SIGABRT,FatalSigHandler);
-	signal(SIGIOT,FatalSigHandler);
-	signal(SIGBUS,FatalSigHandler);
+	signal(SIGQUIT, FatalSigHandler);
+	signal(SIGILL, FatalSigHandler);
+	signal(SIGTRAP, FatalSigHandler);
+	signal(SIGABRT, FatalSigHandler);
+	signal(SIGIOT, FatalSigHandler);
+	signal(SIGBUS, FatalSigHandler);
 #ifdef SIGEMT /* this is not defined under Linux */
-	signal(SIGEMT,FatalSigHandler);
+	signal(SIGEMT, FatalSigHandler);
 #endif
-	signal(SIGFPE,FatalSigHandler);
-	signal(SIGSEGV,FatalSigHandler);
+	signal(SIGFPE, FatalSigHandler);
+	signal(SIGSEGV, FatalSigHandler);
 #ifdef SIGSTKFLT
-	signal(SIGSTKFLT,FatalSigHandler);
+	signal(SIGSTKFLT, FatalSigHandler);
 #endif
-	signal(SIGCONT,FatalSigHandler);
-#ifdef	SIGPWR
-	signal(SIGPWR,FatalSigHandler);
+	signal(SIGCONT, FatalSigHandler);
+#ifdef SIGPWR
+	signal(SIGPWR, FatalSigHandler);
 #endif
-	signal(SIGSYS,FatalSigHandler);
-	
+	signal(SIGSYS, FatalSigHandler);
+
 	/* these handlers are important for control of the daemon process */
 
 	/* TERM  - shut down immediately */
-	
-	sigtermSA.sa_handler=TermHandler;
+
+	sigtermSA.sa_handler = TermHandler;
 	sigemptyset(&sigtermSA.sa_mask);
-	sigtermSA.sa_flags=0;
-	sigaction(SIGTERM,&sigtermSA,NULL);
-		
+	sigtermSA.sa_flags = 0;
+	sigaction(SIGTERM, &sigtermSA, NULL);
+
 	/* USR1 - finish serving the current connection and then close down
 		(graceful shutdown) */
-	
-	sigusr1SA.sa_handler=Usr1Handler;
+
+	sigusr1SA.sa_handler = Usr1Handler;
 	sigemptyset(&sigusr1SA.sa_mask);
-	sigusr1SA.sa_flags=0;
-	sigaction(SIGUSR1,&sigusr1SA,NULL);
-	
+	sigusr1SA.sa_flags = 0;
+	sigaction(SIGUSR1, &sigusr1SA, NULL);
+
 	/* HUP - finish serving the current connection and then restart
 		connection handling. This could be used to force a re-read of
 		a configuration file for example */
-	
-	sighupSA.sa_handler=HupHandler;
+
+	sighupSA.sa_handler = HupHandler;
 	sigemptyset(&sighupSA.sa_mask);
-	sighupSA.sa_flags=0;
-	sigaction(SIGHUP,&sighupSA,NULL);
-	
+	sighupSA.sa_flags = 0;
+	sigaction(SIGHUP, &sighupSA, NULL);
+
 	return 0;
 }
 
@@ -452,7 +448,7 @@ int ConfigureSignalHandlers(void)
 
 	interface	 I					  the IP address that should be bound
 										  to the socket. This is important for
-										  multihomed hosts, which may want to 
+										  multihomed hosts, which may want to
 										  restrict themselves to listening on a
 										  given interface. If this is not the case,
 										  use the special constant INADDR_ANY to
@@ -461,38 +457,38 @@ int ConfigureSignalHandlers(void)
 	Returns:
 
 	status code indicating success - 0 = success
-	
+
 ***************************************************************************/
 /**************************************************************************/
 
 int BindPassiveSocket(const unsigned long interface,
-							 const int portNum,
-							 int *const boundSocket)
+					  const int portNum,
+					  int *const boundSocket)
 {
-	struct sockaddr_in			  sin;
-	struct protoent				  *proto;
-	int								  newsock;
+	struct sockaddr_in sin;
+	struct protoent *proto;
+	int newsock;
 	char optval;
-	size_t							  optlen;
-	
+	size_t optlen;
+
 	/* get the number of the TCP protocol */
-	if((proto=getprotobyname("tcp"))==NULL)
+	if ((proto = getprotobyname("tcp")) == NULL)
 		return -1;
 
 	/* clear the socket address structure */
-	
-	memset(&sin.sin_zero,0,8);
+
+	memset(&sin.sin_zero, 0, 8);
 
 	/* set up the fields. Note htonX macros are important for
 		portability */
 
-	sin.sin_port=htons(portNum);
-	sin.sin_family=AF_INET; /* Usage: AF_XXX here, PF_XXX in socket() */
-	sin.sin_addr.s_addr=htonl(interface);
+	sin.sin_port = htons(portNum);
+	sin.sin_family = AF_INET; /* Usage: AF_XXX here, PF_XXX in socket() */
+	sin.sin_addr.s_addr = htonl(interface);
 
-	if((newsock=socket(PF_INET,SOCK_STREAM,proto->p_proto))<0)
+	if ((newsock = socket(PF_INET, SOCK_STREAM, proto->p_proto)) < 0)
 		return -1;
-	
+
 	/* The SO_REUSEADDR socket option allows the kernel to re-bind
 		local addresses without delay (for our purposes, it allows re-binding
 		while the previous socket is in TIME_WAIT status, which lasts for
@@ -504,22 +500,22 @@ int BindPassiveSocket(const unsigned long interface,
 		It's handy for us so the server can be restarted without having to
 		wait for termination of the TIME_WAIT period. */
 
-	optval=1;
-	optlen=sizeof(int);
-	setsockopt(newsock,SOL_SOCKET,SO_REUSEADDR,(char*)&optval,optlen); /*optval type change to char*/
-	
+	optval = 1;
+	optlen = sizeof(int);
+	setsockopt(newsock, SOL_SOCKET, SO_REUSEADDR, (char *)&optval, optlen); /*optval type change to char*/
+
 	/* bind to the requested port */
-	
-	if(bind(newsock,(struct sockaddr*)&sin,sizeof(struct sockaddr_in))<0)
+
+	if (bind(newsock, (struct sockaddr *)&sin, sizeof(struct sockaddr_in)) < 0)
 		return -1;
-		  
+
 	/* put the socket into passive mode so it is lisetning for connections */
-		  
-	if(listen(newsock,SOMAXCONN)<0)
+
+	if (listen(newsock, SOMAXCONN) < 0)
 		return -1;
-	
-	*boundSocket=newsock;
-	
+
+	*boundSocket = newsock;
+
 	return 0;
 }
 
@@ -550,7 +546,7 @@ connect() is interrupted.
 
 	Repeatedly handle connections, blocking on accept() and then
 	handing off the request to the HandleConnection function.
-	
+
 	Inputs:
 
 	master		 I					  the master socket that has been
@@ -560,45 +556,50 @@ connect() is interrupted.
 	Returns:
 
 	status code indicating success - 0 = success
-	
+
 ***************************************************************************/
 /**************************************************************************/
 
 int AcceptConnections(const int master)
 {
-	int						proceed=1,slave,retval=0;
-	struct sockaddr_in	client;
-	/*socklen_t*/ int				clilen;/*socket.h msghdr msg_namelen is int*/
+	int proceed = 1, slave, retval = 0;
+	struct sockaddr_in client;
+	/*socklen_t*/ int clilen; /*socket.h msghdr msg_namelen is int*/
 
 	gLogFP = fopen("testerd_logs.txt", "w+");
 
-	while((proceed==1)&&(gGracefulShutdown==0))
-		{
+	while ((proceed == 1) && (gGracefulShutdown == 0))
+	{
 		/* block in accept() waiting for a request */
 
-		clilen=sizeof(client);
+		clilen = sizeof(client);
 
-		slave=accept(master,(struct sockaddr *)&client,&clilen);
+		slave = accept(master, (struct sockaddr *)&client, &clilen);
 
-		if(slave<0) /* accept() failed */
-			{
-			if(errno==EINTR)
+		if (slave < 0) /* accept() failed */
+		{
+			if (errno == EINTR)
 				continue;
 
-			syslog(LOG_LOCAL0|LOG_INFO,"accept() failed: %m\n");
-			proceed=0;
-			retval=-1;
-			}
+			syslog(LOG_LOCAL0 | LOG_INFO, "accept() failed: %m\n");
+			proceed = 0;
+			retval = -1;
+		}
 		else
+		{
+			retval = HandleConnection(slave); /* process connection */
+			syslog(LOG_INFO, "retval: %d\n", retval);
+			if (gLogFP)
 			{
-			retval=HandleConnection(slave); /* process connection */
-			if(retval)
-				proceed=0;
+				fprintf(gLogFP, "retval: %d\n", retval);
+				fflush(gLogFP);
 			}
-
-		close(slave);
+			if (retval)
+				proceed = 1;
 		}
 
+		close(slave);
+	}
 
 	return retval;
 }
@@ -607,45 +608,40 @@ int AcceptConnections(const int master)
 /***************************************************************************
 
    ProcessMessage
-      
-     Pass the message to shell script for processing and obtain reply message									    
+
+	 Pass the message to shell script for processing and obtain reply message
 
 
  **************************************************************************/
 
-
-
-int ProcessMessage(char *const buffer,const size_t buflen,
-				 size_t *const bytesRead)
+int ProcessMessageTmp(char *buffer, const size_t buflen,
+					  size_t *const bytesRead)
 {
-  
-  int r;
-  FILE *pp;
-  /* char param_str[1024] = "./hello.ksh"; "./" (char*) malloc(buflen*sizeof(char));*/
 
+	int r;
+	FILE *pp;
+	/* char param_str[1024] = "./hello.ksh"; "./" (char*) malloc(buflen*sizeof(char));*/
 
-  pp = popen("uname -r", "r");
-  if (pp != NULL)
-  {
-    char buf[60];
+	pp = popen("uname -r", "r");
+	if (pp != NULL)
+	{
+		char buf[60];
 
-   if( fgets (buf, 60, pp)!=NULL ) {
+		if (fgets(buf, 60, pp) != NULL)
+		{
 
-      puts(buf);
-    /* get out string len */
-    *bytesRead = strlen(buf);
-    sprintf(buffer, "%s", buf);   
-   }
+			puts(buf);
+			/* get out string len */
+			*bytesRead = strlen(buf);
+			sprintf(buffer, "%s", buf);
+		}
 
-   /*free(param_str)*/
+		/*free(param_str)*/
 
-    pclose(pp);
-  }
-  return 0;
+		pclose(pp);
+	}
+	return 0;
 }
-
-
-
 
 /**************************************************************************/
 /***************************************************************************
@@ -658,7 +654,7 @@ int ProcessMessage(char *const buffer,const size_t buflen,
    Here, we simply read a CRLF-terminated line (the server is intended
    to be exercised for demo purposes via a telnet client) and echo it
    back to the client.
-	
+
 	Inputs:
 
 	sock			 I					  the socket descriptor for this
@@ -667,24 +663,61 @@ int ProcessMessage(char *const buffer,const size_t buflen,
 	Returns:
 
 	status code indicating success - 0 = success
-   
+
 ***************************************************************************/
 /**************************************************************************/
 
 int HandleConnection(const int slave)
 {
-	char					readbuf[ LG_BUF_LEN + 1 ];
-	size_t					bytesRead;
-	const size_t			buflen = LG_BUF_LEN;
-	int						retval;
+	char readbuf[LG_BUF_LEN + 1];
+	size_t bytesRead;
+	const size_t buflen = LG_BUF_LEN;
+	int retval;
 
-	retval=ReadLine(slave,readbuf,buflen,&bytesRead);
+	char echoMsg[SM_BUF_LEN];
 
-	retval=ProcessMessage(readbuf, buflen, &bytesRead);
+	do
+	{
 
-	if(retval==0)
-		WriteToSocket(slave,readbuf,bytesRead);
-	
+		// Receive message from client
+
+		ReadLine(slave, readbuf, buflen, &bytesRead);
+		
+		/* if(gLogFP)
+		{
+			fprintf(gLogFP, "bytesRead=%lld\n", bytesRead);
+			fflush(gLogFP);
+		} */
+
+		sprintf(echoMsg, "echo \"bytesRead: %lld \\n\" >> /testerd_logs.txt", bytesRead);
+		system(echoMsg);
+
+
+		if(bytesRead <= 2)
+			continue;
+
+		// Process message and form response
+		retval = ProcessMessageTmp(readbuf, buflen, &bytesRead);
+
+		// Send response back to client
+		// send(client, response)
+
+		if (retval == 0)
+			WriteToSocket(slave, readbuf, bytesRead);
+
+		/* // Check if 'quit' message received
+		if msg
+			== 'quit' : close(client) continue
+
+						// Wait for more messages
+						msg = recv(client)
+
+							  // If recv returns 0, client closed connection
+							  if msg == 0 : close(client) continue */
+
+		/* code */
+	} while (bytesRead > 2);
+
 	return retval;
 }
 
@@ -704,37 +737,37 @@ int HandleConnection(const int slave)
    buflen		 I					  the length of the buffer in bytes
 
    Returns: status code indicating success - 0 = success
-  
+
 ***************************************************************************/
 /**************************************************************************/
 
-int WriteToSocket(const int sock,const char *const buffer,
-						const size_t buflen)
+int WriteToSocket(const int sock, const char *const buffer,
+				  const size_t buflen)
 {
-	size_t					bytesWritten=0;
-	ssize_t					writeResult;
-	int						retval=0,done=0;
+	size_t bytesWritten = 0;
+	ssize_t writeResult;
+	int retval = 0, done = 0;
 
 	do
+	{
+		writeResult = send(sock, buffer + bytesWritten, buflen - bytesWritten, 0);
+		if (writeResult == -1)
 		{
-		writeResult=send(sock,buffer+bytesWritten,buflen-bytesWritten,0);
-		if(writeResult==-1)
-			{
-			if(errno==EINTR)
-				writeResult=0;
+			if (errno == EINTR)
+				writeResult = 0;
 			else
-				{
-				retval=1;
-				done=1;
-				}
-			}
-		else
 			{
-			bytesWritten+=writeResult;
-			if(writeResult==0)
-				done=1;
+				retval = 1;
+				done = 1;
 			}
-		}while(done==0);
+		}
+		else
+		{
+			bytesWritten += writeResult;
+			if (writeResult == 0)
+				done = 1;
+		}
+	} while (done == 0);
 
 	return retval;
 }
@@ -762,51 +795,51 @@ int WriteToSocket(const int sock,const char *const buffer,
 ***************************************************************************/
 /**************************************************************************/
 
-int ReadLine(const int sock,char *const buffer,const size_t buflen,
-				 size_t *const bytesRead)
+int ReadLine(const int sock, char *const buffer, const size_t buflen,
+			 size_t *const bytesRead)
 {
-	int						done=0,retval=0;
-	char						c,lastC=0;
-	size_t					bytesSoFar=0;
-	ssize_t					readResult;
-	
+	int done = 0, retval = 0;
+	char c, lastC = 0;
+	size_t bytesSoFar = 0;
+	ssize_t readResult;
+
 	do
+	{
+		readResult = recv(sock, &c, 1, 0);
+
+		switch (readResult)
 		{
-		readResult=recv(sock,&c,1,0);
-		
-		switch(readResult)
+		case -1:
+			if (errno != EINTR)
 			{
-			case -1:
-			  if(errno!=EINTR)
-				  {
-				  retval=-1;
-				  done=1;
-				  }
-			  break;
-			  
-			case 0:
-			  retval=0;
-			  done=1;
-			  break;
-			  
-			case 1:
-			  buffer[bytesSoFar]=c;
-			  bytesSoFar+=readResult;
-			  if(bytesSoFar>=buflen)
-				  {
-				  done=1;
-				  retval=-1;
-				  }
-			  
-			  if((c=='\n')&&(lastC=='\r'))
-				  done=1;
-			  lastC=c;
-			  break;
+				retval = -1;
+				done = 1;
 			}
-		}while(!done);
-	buffer[bytesSoFar]=0;
-	*bytesRead=bytesSoFar;
-	
+			break;
+
+		case 0:
+			retval = 0;
+			done = 1;
+			break;
+
+		case 1:
+			buffer[bytesSoFar] = c;
+			bytesSoFar += readResult;
+			if (bytesSoFar >= buflen)
+			{
+				done = 1;
+				retval = -1;
+			}
+
+			if ((c == '\n') && (lastC == '\r'))
+				done = 1;
+			lastC = c;
+			break;
+		}
+	} while (!done);
+	buffer[bytesSoFar] = 0;
+	*bytesRead = bytesSoFar;
+
 	return retval;
 }
 
@@ -824,16 +857,16 @@ int ReadLine(const int sock,char *const buffer,const size_t buflen,
 	sig			 I					  the signal number
 
 	Returns: none
-																									 
+
 ***************************************************************************/
 /**************************************************************************/
 
 void FatalSigHandler(int sig)
 {
 #ifdef _GNU_SOURCE
-	syslog(LOG_LOCAL0|LOG_INFO,"caught signal: %s - exiting",strsignal(sig));
+	syslog(LOG_LOCAL0 | LOG_INFO, "caught signal: %s - exiting", strsignal(sig));
 #else
-	syslog(LOG_LOCAL0|LOG_INFO,"caught signal: %d - exiting",sig);
+	syslog(LOG_LOCAL0 | LOG_INFO, "caught signal: %d - exiting", sig);
 #endif
 
 	closelog();
@@ -852,7 +885,7 @@ void FatalSigHandler(int sig)
 	sig			 I					  the signal number (SIGTERM)
 
 	Returns: none
-																									 
+
 ***************************************************************************/
 /**************************************************************************/
 
@@ -876,15 +909,15 @@ void TermHandler(int sig)
 	sig			 I					  the signal number (SIGTERM)
 
 	Returns: none
-																									 
+
 ***************************************************************************/
 /**************************************************************************/
 
 void HupHandler(int sig)
 {
-	syslog(LOG_LOCAL0|LOG_INFO,"caught SIGHUP");
-	gGracefulShutdown=1;
-	gCaughtHupSignal=1;
+	syslog(LOG_LOCAL0 | LOG_INFO, "caught SIGHUP");
+	gGracefulShutdown = 1;
+	gCaughtHupSignal = 1;
 
 	/****************************************************************/
 	/* perhaps at this point you would re-read a configuration file */
@@ -900,20 +933,20 @@ void HupHandler(int sig)
 
 	Handler for the SIGUSR1 signal. This sets the gGracefulShutdown flag,
    which permits active connections to run to completion before shutdown.
-   It is therefore a more friendly way to shut down the server than 
+   It is therefore a more friendly way to shut down the server than
    sending SIGTERM.
 
 	sig			 I					  the signal number (SIGTERM)
 
 	Returns: none
-																									 
+
 ***************************************************************************/
 /**************************************************************************/
 
 void Usr1Handler(int sig)
 {
-	syslog(LOG_LOCAL0|LOG_INFO,"caught SIGUSR1 - soft shutdown");
-	gGracefulShutdown=1;
+	syslog(LOG_LOCAL0 | LOG_INFO, "caught SIGUSR1 - soft shutdown");
+	gGracefulShutdown = 1;
 
 	return;
 }
@@ -929,22 +962,22 @@ void Usr1Handler(int sig)
    explicitly release that which you have allocated.
 
 	Returns: none
-																									 
+
 ***************************************************************************/
 /**************************************************************************/
 
 void TidyUp(void)
 {
-	if(gLockFileDesc!=-1)
-		{
+	if (gLockFileDesc != -1)
+	{
 		close(gLockFileDesc);
 		unlink(gLockFilePath);
-		gLockFileDesc=-1;
-		}
+		gLockFileDesc = -1;
+	}
 
-	if(gMasterSocket!=-1)
-		{
+	if (gMasterSocket != -1)
+	{
 		close(gMasterSocket);
-		gMasterSocket=-1;
-		}
+		gMasterSocket = -1;
+	}
 }

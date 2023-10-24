@@ -1,7 +1,7 @@
 
 #include "match.h"
 
-int extract_kv_pair(const char *source, const char *regexString, char *ret_str, int match_num, int group_num, char *multiBuf)
+int extract_kv_pair(const char *source, const char *regexString, char *ret_str, int match_num, int group_num, char *multiBuf, int *hitCount)
 {
 
   size_t maxMatches = 5;
@@ -12,12 +12,22 @@ int extract_kv_pair(const char *source, const char *regexString, char *ret_str, 
   unsigned int m;
   char *cursor;
 
+  *hitCount = 0; 
+
   log_debug("\nsource: %s\n", source);
+
+  /* init multibuf */
+  if (multiBuf)
+    strcpy(multiBuf, "");
+
+  /* init ret_str */
+  if (ret_str)
+    strcpy(ret_str, "");
 
   if (regcomp(&regexCompiled, regexString, REG_EXTENDED | REG_ICASE))
   {
     log_debug("Could not compile regular expression.\n");
-    return 1;
+    return -1;
   };
 
   m = 0;
@@ -26,7 +36,9 @@ int extract_kv_pair(const char *source, const char *regexString, char *ret_str, 
   {
     if (regexec(&regexCompiled, cursor, maxGroups, groupArray, 0))
       break; // No more matches
-
+    
+    ++*hitCount;
+    
     unsigned int g = 0;
     unsigned int offset = 0;
     for (g = 0; g < maxGroups; g++)
@@ -39,7 +51,7 @@ int extract_kv_pair(const char *source, const char *regexString, char *ret_str, 
 
       char cursorCopy[strlen(cursor) + 1];
       strcpy(cursorCopy, cursor);
-      log_debug("\ncursorCopy: %s\n",cursorCopy);
+      log_debug("\ncursorCopy: %s\n", cursorCopy);
       cursorCopy[groupArray[g].rm_eo] = 0;
       log_debug("Match %u, Group %u: [%2u-%2u]: %s\n",
                 m, g, groupArray[g].rm_so, groupArray[g].rm_eo,
@@ -49,12 +61,13 @@ int extract_kv_pair(const char *source, const char *regexString, char *ret_str, 
       {
         strcpy(ret_str, cursorCopy);
       }
+
+      /* if multiple param, accumulate params and pad with separator */
       if ((multiBuf != NULL) && (g == 0))
       {
-        /* if multiple param, pad with seperator */
-        if(m > 0)
+        if (m > 0)
         {
-          strcat(multiBuf, PARAM_SEPERATOR);
+          strcat(multiBuf, PARAM_SEPARATOR);
         }
         /* consider using strdup?? */
         strcat(multiBuf, cursorCopy);

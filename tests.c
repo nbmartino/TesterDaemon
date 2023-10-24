@@ -5,7 +5,7 @@
 
 extern void initCommandRefs();
 extern void cleanUpCommandRefs();
-extern int ProcessMessage(const char *message, char *replyBuf);
+extern int ProcessMessage(const char *message);
 extern struct CommandObject *CmdObjPtr;
 
 int main(int argc, char *argv[])
@@ -13,6 +13,7 @@ int main(int argc, char *argv[])
     char pat[] = "/^MID:\\w+\\s+CMD:\\w+\\s+\\b[A-Z]{2,}\\b:[\\w\\s]+(?:\\s+\\b[A-Z]{2,}\\b:[\\w\\s]+)*\\\\n|$/gm";
     char data[] = {"MiD:123 CMD:PrGn paTH:/usr/local/pgm.fl nAmE:\"Prog Name\" \n"};
     char replyMsg[LG_BUF_LEN];
+    char msgBuf[LG_BUF_LEN];
     char key[64] = {0};
     char val[64] = {0};
     int retVal;
@@ -21,118 +22,149 @@ int main(int argc, char *argv[])
 
     /* Tests */
 
-goto scribe;
     /* ACCSLEVEL */
-    retVal = ProcessMessage("MID:1 CMD:ACCSLEVEL LEVEL:OPERATOR\n", replyMsg);
-    printf("After invoking command, reply string: %s\n", replyMsg);
+    strcpy(msgBuf,"MID:1 CMD:ACCSLEVEL LEVEL:OPERATOR\n");
+    retVal = ProcessMessage(msgBuf);
+    printf("Response message: %s\n", msgBuf);
 
     /* ACCSLEVEL_Q */
-    retVal = ProcessMessage("MID:1 CMD:ACCSLEVEL?\n", replyMsg);
-    printf("After invoking command, reply string: %s\n", replyMsg);
+    strcpy(msgBuf,"MID:1 CMD:ACCSLEVEL?\n");
+    retVal = ProcessMessage(msgBuf);
+    printf("Response message: %s\n", msgBuf);
 
     /* PRGN */
-    retVal = ProcessMessage("MID:1 CMD:PRGN PATH:/home/src/TP23976 NAME:DCYTTT34.dll\n", replyMsg);
-    printf("After invoking command, reply string: %s\n", replyMsg);
+    strcpy(msgBuf, "MID:1 CMD:PRGN PATH:/home/src/TP23976 NAME:DCYTTT34.dll\n");
+    retVal = ProcessMessage(msgBuf);
+    printf("Response message: %s\n", msgBuf);
 
     /* PRGN_Q */
-    retVal = ProcessMessage("MID:1 CMD:PRGN?\n", replyMsg);
-    printf("After invoking command, reply string: %s\n", replyMsg);
+    strcpy(msgBuf,"MID:1 CMD:PRGN?\n");
+    retVal = ProcessMessage(msgBuf);
+    printf("Response message: %s\n", msgBuf);
 
     /* LOT */
-    retVal = ProcessMessage("MID:1 CMD:LOT LOT:GM89463.1A\n", replyMsg);
-    printf("After invoking command, reply string: %s\n", replyMsg);
+    strcpy(msgBuf,"MID:1 CMD:LOT LOT:GM89463.1A\n");
+    retVal = ProcessMessage(msgBuf);
+    printf("Response message: %s\n", msgBuf);
 
     /* LOT_Q */
-    retVal = ProcessMessage("MID:1 CMD:LOT?\n", replyMsg);
-    printf("After invoking command, reply string: %s\n", replyMsg);
+    strcpy(msgBuf,"MID:1 CMD:LOT?\n");
+    retVal = ProcessMessage(msgBuf);
+    printf("Response message: %s\n", msgBuf);
 
     /* DEVICE */
-    retVal = ProcessMessage("MID:1 CMD:DEVICE DEVICE:WT6MC3307400N\n", replyMsg);
-    printf("After invoking command, reply string: %s\n", replyMsg);
+    strcpy(msgBuf,"MID:1 CMD:DEVICE DEVICE:WT6MC3307400N\n");
+    retVal = ProcessMessage(msgBuf);
+    printf("Response message: %s\n", msgBuf);
 
     /* DEVICE_Q */
-    retVal = ProcessMessage("MID:1 CMD:DEVICE?\n", replyMsg);
-    printf("After invoking command, reply string: %s\n", replyMsg);
+    strcpy(msgBuf,"MID:1 CMD:DEVICE?\n");
+    retVal = ProcessMessage(msgBuf);
+    printf("Response message: %s\n", msgBuf);
 
     /* TESTMODE */
-    retVal = ProcessMessage("MID:1 CMD:TESTMODE MODE:QA\n", replyMsg);
-    printf("After invoking command, reply string: %s\n", replyMsg);
+    strcpy(msgBuf, "MID:1 CMD:TESTMODE MODE:QA\n");
+    retVal = ProcessMessage(msgBuf);
+    printf("Response message: %s\n", msgBuf);
 
     /* TESTMODE_Q */
-    retVal = ProcessMessage("MID:1 CMD: TESTMODE?\n", replyMsg);
-    printf("After invoking command, reply string: %s\n", replyMsg);
+    strcpy(msgBuf,"MID:1 CMD:TESTMODE?\n");
+    retVal = ProcessMessage(msgBuf);
+    printf("Response message: %s\n", msgBuf);
 
     /* PCSITES */
-    retVal = ProcessMessage("MID:1 CMD:PCSITES PCSITES:X000Y000,X000Y001,X000Y002\n", replyMsg);
-    printf("After invoking command, reply string: %s\n", replyMsg);
+    strcpy(msgBuf,"MID:1 CMD:PCSITES PCSITES:X000Y000,X000Y001,X000Y002\n");
+    retVal = ProcessMessage(msgBuf);
+    printf("Response message: %s\n", msgBuf);
 
     /* PCSITES_Q */
-    retVal = ProcessMessage("MID:1 CMD:PCSITES?\n", replyMsg);
-    printf("After invoking command, reply string: %s\n", replyMsg);
+    strcpy(msgBuf,"MID:1 CMD:PCSITES?\n");
+    retVal = ProcessMessage(msgBuf);
+    printf("Response message: %s\n", msgBuf);
 
     /* PBCARD */
-    retVal = ProcessMessage("MID:1 CMD:PBCARD PBCARD:PC_01546\n", replyMsg);
-    printf("After invoking command, reply string: %s\n", replyMsg);
+    strcpy(msgBuf,"MID:1 CMD:PBCARD PBCARD:PC_01546\n");
+    retVal = ProcessMessage(msgBuf);
+    printf("Response message: %s\n", msgBuf);
 
     /* PBCARD_Q */
-    retVal = ProcessMessage("MID:1 CMD:PBCARD?\n", replyMsg);
-    printf("After invoking command, reply string: %s\n", replyMsg);
+    strcpy(msgBuf,"MID:1 CMD:PBCARD?\n");
+    retVal = ProcessMessage(msgBuf);
+    printf("Response message: %s\n", msgBuf);
 
     /* LDBRD */
-    // retVal = ProcessMessage("", replyMsg);
-    // printf("After invoking command, reply string: %s\n", replyMsg);
+    strcpy(msgBuf,"MID:1 CMD:LDBRD LOADBOARD:LB98765AB\n");
+    retVal = ProcessMessage(msgBuf);
+    printf("Response message: %s\n", msgBuf);
 
+    /* LDBRD_Q */
+    strcpy(msgBuf,"MID:1 CMD:LDBRD?\n");
+    retVal = ProcessMessage(msgBuf);
+    printf("Response message: %s\n", msgBuf);
+return 0;
     /* DLNAME */
-    retVal = ProcessMessage("MID:1 CMD:DLNAME PATH:\"/home/app/log\" NAME:\"ETS300_2014_01_29\"\n", replyMsg);
-    printf("After invoking command, reply string: %s\n", replyMsg);
+    strcpy(msgBuf,"MID:1 CMD:DLNAME PATH:\"/home/app/log\" NAME:\"ETS300_2014_01_29\"\n");
+    retVal = ProcessMessage(msgBuf);
+    printf("Response message: %s\n", msgBuf);
 
     /* DLOGI */
-    retVal = ProcessMessage("MID:1 CMD:DLOGI INTERVAL:5\n", replyMsg);
-    printf("After invoking command, reply string: %s\n", replyMsg);
+    strcpy(msgBuf,"MID:1 CMD:DLOGI INTERVAL:5\n");
+    retVal = ProcessMessage(msgBuf);
+    printf("Response message: %s\n", msgBuf);
 
     /* DLOGI_Q */
-    retVal = ProcessMessage("MID:1 CMD:DLOGI?\n", replyMsg);
-    printf("After invoking command, reply string: %s\n", replyMsg);
+    strcpy(msgBuf,"MID:1 CMD:DLOGI?\n");
+    retVal = ProcessMessage(msgBuf);
+    printf("Response message: %s\n", msgBuf);
 
     /* DLSTART */
-    retVal = ProcessMessage("MID:1 CMD:DLSTART\n", replyMsg);
-    printf("After invoking command, reply string: %s\n", replyMsg);
+    strcpy(msgBuf,"MID:1 CMD:DLSTART\n");
+    retVal = ProcessMessage(msgBuf);
+    printf("Response message: %s\n", msgBuf);
 
     /* WFR */
-    retVal = ProcessMessage("MID:1 CMD:WFR WAFER:01\n", replyMsg);
-    printf("After invoking command, reply string: %s\n", replyMsg);
+    strcpy(msgBuf,"MID:1 CMD:WFR WAFER:01\n");
+    retVal = ProcessMessage(msgBuf);
+    printf("Response message: %s\n", msgBuf);
 
     /* WFR_Q */
-    retVal = ProcessMessage("MID:1 CMD:WFR?\n", replyMsg);
-    printf("After invoking command, reply string: %s\n", replyMsg);
+    strcpy(msgBuf,"MID:1 CMD:WFR?\n");
+    retVal = ProcessMessage(msgBuf);
+    printf("Response message: %s\n", msgBuf);
 
     /* SOT */
-    retVal = ProcessMessage("MID:1 CMD:SOT X:041 Y:158 S:011 MODULE:ABC_1 MODULEX:0 MODULEY:700", replyMsg);
-    printf("After invoking command, reply string: %s\n", replyMsg);
+    strcpy(msgBuf,"MID:1 CMD:SOT X:041 Y:158 S:011 MODULE:ABC_1 MODULEX:0 MODULEY:700");
+    retVal = ProcessMessage(msgBuf);
+    printf("Response message: %s\n", msgBuf);
 
     /* EOW */
-    retVal = ProcessMessage("MID:1 CMD:EOW\n", replyMsg);
-    printf("After invoking command, reply string: %s\n", replyMsg);
+    strcpy(msgBuf,"MID:1 CMD:EOW\n");
+    retVal = ProcessMessage(msgBuf);
+    printf("Response message: %s\n", msgBuf);
 
     /* DLEND */
-    retVal = ProcessMessage("MID:1 CMD:DLEND\n", replyMsg);
-    printf("After invoking command, reply string: %s\n", replyMsg);
+    strcpy(msgBuf,"MID:1 CMD:DLEND\n");
+    retVal = ProcessMessage(msgBuf);
+    printf("Response message: %s\n", msgBuf);
 
     /* EOL */
-    retVal = ProcessMessage("MID:1 CMD:EOL\n", replyMsg);
-    printf("After invoking command, reply string: %s\n", replyMsg);
-scribe:
+    strcpy(msgBuf,"MID:1 CMD:EOL\n");
+    retVal = ProcessMessage(msgBuf);
+    printf("Response message: %s\n", msgBuf);
+
     /* SCRIBE */
-    retVal = ProcessMessage("MID:1 CMD:SCRIBE SCRIBE:\"GM28912-02-1A EC\"\n", replyMsg);
-    printf("After invoking command, reply string: %s\n", replyMsg);
-return 0;
+    strcpy(msgBuf,"MID:1 CMD:SCRIBE SCRIBE:\"GM28912-02-1A EC\"\n");
+    retVal = ProcessMessage(msgBuf);
+    printf("Response message: %s\n", msgBuf);
+
     /* SCRIBE_Q */
-    retVal = ProcessMessage("MID:1 CMD:SCRIBE?\n", replyMsg);
-    printf("After invoking command, reply string: %s\n", replyMsg);
+    strcpy(msgBuf,"MID:1 CMD:SCRIBE?\n");
+    retVal = ProcessMessage(msgBuf);
+    printf("Response message: %s\n", msgBuf);
 
     /* "MID:1 CMD:TESTERLOCK LOCK:TRUE\n" */
-    // retVal  = ProcessMessage("MID:1 CMD:TESTERLOCK LOCK:TRUE\n", replyMsg);
-    // printf("After invoking command, reply string: %s\n", replyMsg);
+    // retVal  = ProcessMessage("MID:1 CMD:TESTERLOCK LOCK:TRUE\n", msgBuf);
+    // printf("Response message: %s\n", msgBuf);
 
     /*
     Test for these:
