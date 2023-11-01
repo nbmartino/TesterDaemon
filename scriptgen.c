@@ -45,7 +45,7 @@ int main()
         printf("line: %s\n", line);
         strcpy(destFilename, strtok(line, "\n"));
         printf("destFilename: %s\n", destFilename);
-        //sprintf(destPath,"%s/%s",DEST_PATH,line);
+        /* sprintf(destPath,"%s/%s",DEST_PATH,line); */
         strcat(destPath,destFilename);
         
         /*
@@ -92,11 +92,11 @@ int main()
     fclose(sourceFile);
 
     fclose(fp);
-    //if (line)
-     //   free(line);
+    /* if (line)
+        free(line);
         
-    //if (destPath)
-     //   free(destPath);
+    if (destPath)
+        free(destPath); */
 
     return 0;
 }

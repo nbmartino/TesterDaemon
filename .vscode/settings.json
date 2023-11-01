@@ -2,6 +2,7 @@
     "C_Cpp.errorSquiggles": "disabled",
     "files.associations": {
         "globaldefs.h": "c",
-        "data.h": "c"
+        "data.h": "c",
+        "logging.h": "c"
     }
 }

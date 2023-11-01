@@ -1,9 +1,7 @@
-#include <stdio.h>
 
 #define DEBUG_MODE
+#define LOGS_MSG_LEN 1024
 
-#ifdef DEBUG_MODE
-#define log_debug(...) ( printf("[%s] ", __func__), printf(__VA_ARGS__) )
-#else
-#define log_debug(...)
-#endif
+char logMsg[LOGS_MSG_LEN];
+
+void logDebug(const char *msg);

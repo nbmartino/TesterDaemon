@@ -20,6 +20,9 @@
 
 #include "testerd.h"
 
+
+extern int ProcessMessage(char *message);
+
 /*************************************************************************/
 
 /* global variables and constants */
@@ -195,13 +198,15 @@ int BecomeDaemonProcess(const char *const lockFileName,
 
 			if (killResult == 0)
 			{
-				log_debug("\n\nERROR\n\nA lock file %s has been detected. It appears it is owned\nby the (active) process with PID %ld.\n\n", lockFileName, lockPID);
+				sprintf(logMsg,"\n\nERROR\n\nA lock file %s has been detected. It appears it is owned\nby the (active) process with PID %ld.\n\n", lockFileName, lockPID);
+				logDebug(logMsg);
 			}
 			else
 			{
 				if (errno == ESRCH) /* non-existent process */
 				{
-					log_debug("\n\nERROR\n\nA lock file %s has been detected. It appears it is owned\nby the process with PID %ld, which is now defunct. Delete the lock file\nand try again.\n\n", lockFileName, lockPID);
+					sprintf(logMsg,"\n\nERROR\n\nA lock file %s has been detected. It appears it is owned\nby the process with PID %ld, which is now defunct. Delete the lock file\nand try again.\n\n", lockFileName, lockPID);
+					logDebug(logMsg);
 				}
 				else
 				{
@@ -696,23 +701,23 @@ int HandleConnection(const int slave)
 		if(bytesRead <= 2)
 			continue;
 
-		// Process message and form response
+		/* Process message and form response */
 		retval = ProcessMessageTmp(readbuf, buflen, &bytesRead);
 
-		// Send response back to client
-		// send(client, response)
+		/* Send response back to client
+		end(client, response) */
 
 		if (retval == 0)
 			WriteToSocket(slave, readbuf, bytesRead);
 
-		/* // Check if 'quit' message received
+		/*  Check if 'quit' message received
 		if msg
 			== 'quit' : close(client) continue
 
-						// Wait for more messages
+						Wait for more messages
 						msg = recv(client)
 
-							  // If recv returns 0, client closed connection
+							  If recv returns 0, client closed connection
 							  if msg == 0 : close(client) continue */
 
 		/* code */

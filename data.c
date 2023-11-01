@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "data.h"
-#include "logging.h"
+
 
 int gCmdTotalNum = -1;
 
@@ -10,18 +10,21 @@ struct CommandDescriptor *cmdDescPtr;
 
 void initializeCmdDesc(struct CommandDescriptor *inputCmd, int inputIndex, char *inputName, int inputParamsCount) /*, char **params_regex_in)*/
 {
-    log_debug("\ninputIndex:%d inputName: %s\n", inputIndex, inputName);
+    int i;
+    sprintf(logMsg, "\ninputIndex:%d inputName: %s\n", inputIndex, inputName);
+    logDebug(logMsg);
+
     inputCmd->index = inputIndex;
     strcpy(inputCmd->name, inputName);
     inputCmd->paramsCount = inputParamsCount;
     inputCmd->paramsRegex = malloc(inputParamsCount * sizeof(char));
     if (inputParamsCount == 0)
     {
-        inputCmd->paramsRegex = NULL; 
+        inputCmd->paramsRegex = NULL;
     }
     else
     {
-        for (int i = 0; i < inputParamsCount; i++)
+        for (i = 0; i < inputParamsCount; i++)
         {
             inputCmd->paramsRegex[i] = malloc((PARAMS_REGEX_LEN + 1) * sizeof(char));
         }
@@ -30,24 +33,29 @@ void initializeCmdDesc(struct CommandDescriptor *inputCmd, int inputIndex, char 
 
 int findCmdIndex(const char *name)
 {
-    log_debug("\n command name: %s", name);
-    for (int ctr = 0; ctr < gCmdTotalNum; ctr++)
+    int ctr;
+
+    sprintf(logMsg, "\n command name: %s", name);
+    logDebug(logMsg);
+    for (ctr = 0; ctr < gCmdTotalNum; ctr++)
     {
-        /*  log_debug("\nindex: %d, command name: %s", ctr, cmdDescList[ctr].name); */
+        /*  sprintf(logMsg,"\nindex: %d, command name: %s", ctr, cmdDescList[ctr].name); */
         if (strcasecmp(cmdDescList[ctr].name, name) == 0)
         {
-            log_debug("\nfound! index: %d, command name: %s", ctr, cmdDescList[ctr].name);
+            sprintf(logMsg, "\nfound! index: %d, command name: %s", ctr, cmdDescList[ctr].name);
+            logDebug(logMsg);
             return ctr;
         }
-
     }
-    log_debug("\nindex not found, command name: %s\n", name);
+    sprintf(logMsg, "\nindex not found, command name: %s\n", name);
+    logDebug(logMsg);
     return -1;
 }
 
 /* int getParamsCnt(const char *cmdName)
 {
-    log_debug("\ncmdName: %s\n");
+    sprintf(logMsg,"\ncmdName: %s\n");
+    log_debug(logMsg);
     int idx = findCmdIndex(cmdName);
     if (idx != -1)
     {
@@ -101,7 +109,6 @@ void initCommandRefs()
     cmdDescPtr = &cmdDescList[++gCmdTotalNum];
     initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "PRGN?", paramsCount);
 
-
     /* LOT */
     paramsCount = 1;
     cmdDescPtr = &cmdDescList[++gCmdTotalNum];
@@ -111,7 +118,6 @@ void initCommandRefs()
     paramsCount = 0;
     cmdDescPtr = &cmdDescList[++gCmdTotalNum];
     initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "LOT?", paramsCount);
-
 
     /* DEVICE */ paramsCount = 1;
     cmdDescPtr = &cmdDescList[++gCmdTotalNum];
@@ -156,7 +162,7 @@ void initCommandRefs()
     cmdDescPtr = &cmdDescList[++gCmdTotalNum];
     initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "LDBRD", paramsCount);
 
-     /* LDBRD? */
+    /* LDBRD? */
     paramsCount = 0;
     cmdDescPtr = &cmdDescList[++gCmdTotalNum];
     initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "LDBRD?", paramsCount);
@@ -230,12 +236,12 @@ void initCommandRefs()
     paramsCount = 0;
     cmdDescPtr = &cmdDescList[++gCmdTotalNum];
     initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "SCRIBE?", paramsCount);
-
 }
 
 void cleanUpCommandRefs()
 {
-    for (int idx = 0; idx < gCmdTotalNum; idx++)
+    int idx;
+    for (idx = 0; idx < gCmdTotalNum; idx++)
     {
         if (cmdDescList[idx].paramsRegex != NULL)
             free(cmdDescList[idx].paramsRegex);

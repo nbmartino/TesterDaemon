@@ -164,10 +164,10 @@ return 0;
     printf("Response message: %s\n", msgBuf);
 
     /* "MID:1 CMD:TESTERLOCK LOCK:TRUE\n" */
-    // retVal  = ProcessMessage("MID:1 CMD:TESTERLOCK LOCK:TRUE\n", msgBuf);
-    // printf("Response message: %s\n", msgBuf);
+    /* retVal  = ProcessMessage("MID:1 CMD:TESTERLOCK LOCK:TRUE\n", msgBuf);
+     printf("Response message: %s\n", msgBuf);
 
-    /*
+    
     Test for these:
      BIN_YIELD_LIMIT:1 95 2 60 ANOTHER_LIST: a b c
     ERROR_MSG:”something is wrong”
