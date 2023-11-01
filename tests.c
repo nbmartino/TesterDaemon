@@ -1,11 +1,12 @@
 
 #include <assert.h>
 #include <stdio.h>
+#include <string.h>
 #include "data.h"
 
 extern void initCommandRefs();
 extern void cleanUpCommandRefs();
-extern int ProcessMessage(const char *message);
+extern int ProcessMessage(char *message);
 extern struct CommandObject *CmdObjPtr;
 
 int main(int argc, char *argv[])
