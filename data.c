@@ -72,6 +72,8 @@ void initCommandRefs()
 
     int paramsCount;
 
+    logDebug("initCommandRefs()");
+
     /* TESTERLOCK */
     paramsCount = 2;
     cmdDescPtr = &cmdDescList[++gCmdTotalNum];

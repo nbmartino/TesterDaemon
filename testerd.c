@@ -20,7 +20,7 @@
 
 #include "testerd.h"
 
-
+extern void initCommandRefs();
 extern int ProcessMessage(char *message);
 
 /*************************************************************************/
@@ -61,12 +61,17 @@ int main(void /*int argc,char *argv[]*/)
 	/* perhaps at this stage you would read a configuration file */
 	/*************************************************************/
 
+	/* initialize command references to be ready for processing commands */
+	initCommandRefs();
+
+
 	/* the first task is to put ourself into the background (i.e
 		become a daemon. */
 
 	if ((result = BecomeDaemonProcess(gLockFilePath, "testerd",
 									  LOG_DEBUG, &gLockFileDesc, &daemonPID)) < 0)
 	{
+		perror(gLockFilePath);
 		perror("Failed to become daemon process");
 		exit(result);
 	}
@@ -89,6 +94,7 @@ int main(void /*int argc,char *argv[]*/)
 		exit(result);
 	}
 
+	
 	/* now enter an infinite loop handling connections */
 
 	do
@@ -569,7 +575,7 @@ int AcceptConnections(const int master)
 {
 	int proceed = 1, slave, retval = 0;
 	struct sockaddr_in client;
-	/*socklen_t*/ int clilen; /*socket.h msghdr msg_namelen is int*/
+	/*socklen_t*/ unsigned int clilen; /*socket.h msghdr msg_namelen is int*/
 
 	gLogFP = fopen("testerd_logs.txt", "w+");
 
@@ -620,31 +626,12 @@ int AcceptConnections(const int master)
  **************************************************************************/
 
 int ProcessMessageTmp(char *buffer, const size_t buflen,
-					  size_t *const bytesRead)
+					  size_t *bytesRead)
 {
 
-	int r;
-	FILE *pp;
-	/* char param_str[1024] = "./hello.ksh"; "./" (char*) malloc(buflen*sizeof(char));*/
+	ProcessMessage(buffer);
+	*bytesRead = strlen(buffer);
 
-	pp = popen("uname -r", "r");
-	if (pp != NULL)
-	{
-		char buf[60];
-
-		if (fgets(buf, 60, pp) != NULL)
-		{
-
-			puts(buf);
-			/* get out string len */
-			*bytesRead = strlen(buf);
-			sprintf(buffer, "%s", buf);
-		}
-
-		/*free(param_str)*/
-
-		pclose(pp);
-	}
 	return 0;
 }
 
@@ -684,7 +671,7 @@ int HandleConnection(const int slave)
 	do
 	{
 
-		// Receive message from client
+		/* Receive message from client */
 
 		ReadLine(slave, readbuf, buflen, &bytesRead);
 		
@@ -694,7 +681,7 @@ int HandleConnection(const int slave)
 			fflush(gLogFP);
 		} */
 
-		sprintf(echoMsg, "echo \"bytesRead: %lld \\n\" >> /testerd_logs.txt", bytesRead);
+		sprintf(echoMsg, "echo \"bytesRead: %lu \\n\" >> /testerd_logs.txt", bytesRead);
 		system(echoMsg);
 
 
