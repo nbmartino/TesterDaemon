@@ -17,5 +17,5 @@ TIMESTAMP=$(date +%d-%b-%H_%M_%S)
 # print to log file timestamp, script name, passed params
 echo $TIMESTAMP ${0##*/} Params: $1 >> $LOG_FILE_PATH_NAME
 
-RET_MSG="ANSWER:SUCCESS"
+RET_MSG="ANSWER:SUCCESS COMMAND:EQUIPMENT_STATUS MESSAGE:"SPACE-1.15;AMElibrary-1.16;SzEg4000AuxLib-1.1.0"
 echo script_file_name: ${0##*/} received_params: $1 response: $RET_MSG
