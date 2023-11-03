@@ -21,6 +21,9 @@ Code, Compile, Run and Debug online from anywhere in world.
 extern int extract_kv_pair(const char *source, const char *regexString, char *ret_str, int match_num, int group_num, char *multiBuf, int *hitCount);
 extern void initCommandRefs();
 extern int findCmdIndex(const char *name);
+extern int gSlaveId;
+extern int WriteToSocket(const int sock, const char *const buffer,
+				  const size_t buflen)
 /* extern int getParamsCnt(const char *cmdName); */
 
 struct CommandObject *CmdObjPtr = NULL;
@@ -264,6 +267,7 @@ int ProcessMessage(char *message)
     int offset = 0, offsetMID = 0, offsetCMD = 0;
     char strCommon[MSG_TOKEN_LEN];
     char strToken[MSG_TOKEN_LEN];
+    char strAck[MSG_TOKEN_LEN];
     char multiBuf[LG_BUF_LEN];
 
     sprintf(logMsg,"\n===============================================\n");
@@ -275,6 +279,11 @@ int ProcessMessage(char *message)
     offset += extract_kv_pair(message + offset, mid_pattern, strToken, 0, 0, NULL, &hitCount);
     offsetMID = offset;
     copyValueFromToken(strToken, CmdObjPtr->strMID);
+
+    /* if MID is determined, send acknowledgment */
+    sprintf( strAck,"%s ANSWER:ACK", CmdObjPtr->strMID);
+    WriteToSocket( gSlaveId, CmdObjPtr->strMID, strlen(CmdObjPtr->strMID));
+    
     sprintf(logMsg,"str_MID: %s, offset: %d\n", CmdObjPtr->strMID, offset);
     logDebug(logMsg);
 

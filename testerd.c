@@ -33,6 +33,8 @@ volatile sig_atomic_t gCaughtHupSignal = 0;
 int gLockFileDesc = -1;
 int gMasterSocket = -1;
 
+int gSlaveId;
+
 FILE *gLogFP;
 
 /* the 'well-known' port on which our server will be listening */
@@ -41,7 +43,7 @@ const int gTesterDPort = 30153;
 
 /* the path to our lock file */
 
-const char *const gLockFilePath = "/var/run/testerd.pid";
+const char *const gLockFilePath = "/user/prod/testerd/testerd.pid";
 
 /*************************************************************************/
 
@@ -665,6 +667,7 @@ int HandleConnection(const int slave)
 	size_t bytesRead;
 	const size_t buflen = LG_BUF_LEN;
 	int retval;
+	char *token;
 
 	char echoMsg[SM_BUF_LEN];
 
@@ -688,6 +691,8 @@ int HandleConnection(const int slave)
 		if(bytesRead <= 2)
 			continue;
 
+		gSlaveID = slave;
+		
 		/* Process message and form response */
 		retval = ProcessMessageTmp(readbuf, buflen, &bytesRead);
 
@@ -695,8 +700,24 @@ int HandleConnection(const int slave)
 		end(client, response) */
 
 		if (retval == 0)
-			WriteToSocket(slave, readbuf, bytesRead);
+		{
 
+		// Returns first token
+		token = strtok(str, "\n");
+	
+		// Keep printing tokens while one of the
+		// delimiters present in str[].
+		while (token != NULL) 
+		{
+			WriteToSocket(slave, token, strlen(token));
+			token = strtok(NULL, "\n");
+			if(token != NULL )
+			{
+				WriteToSocket(slave, token, strlen(token));
+			}
+		}
+			
+		}
 		/*  Check if 'quit' message received
 		if msg
 			== 'quit' : close(client) continue

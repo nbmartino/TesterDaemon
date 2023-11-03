@@ -7,8 +7,8 @@
 #define PARAMS_REGEX_LEN 128
 #define RET_STR_LEN 1024
 
-#define TESTERD_PID_PATH "/var/run/testerd.pid"
-#define PROD_HOME_DIR "/usr/prod/testerd"
+#define PROD_HOME_DIR "/users/prod/testerd"
+#define TESTERD_PID_PATH  PROD_HOME_DIR "/var/run/testerd.pid"
 #define PARAM_SEPARATOR "\t"
 
 #define REGEX_MID "^MID:[0-9]*[\\s]*"
