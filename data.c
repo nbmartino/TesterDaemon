@@ -238,6 +238,45 @@ void initCommandRefs()
     paramsCount = 0;
     cmdDescPtr = &cmdDescList[++gCmdTotalNum];
     initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "SCRIBE?", paramsCount);
+
+     /* TD_STATUS */
+    paramsCount = 0;
+    cmdDescPtr = &cmdDescList[++gCmdTotalNum];
+    initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "TD_STATUS", paramsCount);
+
+     /* EQUIPMENT_STATUS */
+    paramsCount = 0;
+    cmdDescPtr = &cmdDescList[++gCmdTotalNum];
+    initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "EQUIPMENT_STATUS", paramsCount);
+
+
+    /* CANCEL */
+    paramsCount = 0;
+    cmdDescPtr = &cmdDescList[++gCmdTotalNum];
+    initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "CANCEL", paramsCount);
+
+    /* LOT_START */
+    paramsCount = 17;
+    cmdDescPtr = &cmdDescList[++gCmdTotalNum];
+    initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "LOT_START", paramsCount);
+
+    /* WAFER_START */
+    paramsCount = 1;
+    cmdDescPtr = &cmdDescList[++gCmdTotalNum];
+    initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "WAFER_START", paramsCount);
+
+    /* WAFER_END */
+    paramsCount = 0;
+    cmdDescPtr = &cmdDescList[++gCmdTotalNum];
+    initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "WAFER_END", paramsCount);
+
+
+    /* LOT_END */
+    paramsCount = 8;
+    cmdDescPtr = &cmdDescList[++gCmdTotalNum];
+    initializeCmdDesc(cmdDescPtr, gCmdTotalNum, "LOT_END", paramsCount);
+
+
 }
 
 void cleanUpCommandRefs()
