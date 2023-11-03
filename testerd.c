@@ -701,22 +701,7 @@ int HandleConnection(const int slave)
 
 		if (retval == 0)
 		{
-
-		// Returns first token
-		token = strtok(str, "\n");
-	
-		// Keep printing tokens while one of the
-		// delimiters present in str[].
-		while (token != NULL) 
-		{
-			WriteToSocket(slave, token, strlen(token));
-			token = strtok(NULL, "\n");
-			if(token != NULL )
-			{
-				WriteToSocket(slave, token, strlen(token));
-			}
-		}
-			
+			WriteToSocket(slave, readbuf, bytesRead);	
 		}
 		/*  Check if 'quit' message received
 		if msg
