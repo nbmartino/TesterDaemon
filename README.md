@@ -1,1 +1,1 @@
-Daemon software for Unix-based Automated Test Equipment interfaced to Wafer-mapping application.
+TCP/IP daemon software for Unix-based Automated Test Equipment interfaced to Wafer-mapping application.
